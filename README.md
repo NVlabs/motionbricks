@@ -2,25 +2,16 @@
 
 Source for the MotionBricks (SIGGRAPH 2026) project page.
 
-Target deployment: https://nvlabs.github.io/motionbricks
-Dev repo (internal): https://gitlab-master.nvidia.com/tingwuw/motionbricks_webpage
+Deployed at: https://nvlabs.github.io/motionbricks
 
 ## Preview locally
 
-`python3 -m http.server` does **not** support HTTP range requests, so the large MP4s will stall. Use `http-server` (via `npx`) instead — it streams with `206 Partial Content`.
+`python3 -m http.server` does **not** support HTTP range requests, so large MP4s will stall. Use `http-server` (via `npx`) instead — it streams with `206 Partial Content`.
 
 ```bash
 cd motionbricks_webpage
 npx --yes http-server . -p 8000 -c-1 --cors
 # open http://localhost:8000
-```
-
-## Clone
-
-Requires **Git LFS**. Install once per machine: `git lfs install`.
-
-```bash
-git clone ssh://git@gitlab-master.nvidia.com:12051/tingwuw/motionbricks_webpage.git
 ```
 
 ## Layout
@@ -36,26 +27,37 @@ motionbricks_webpage/
 │   ├── js/
 │   │   ├── bulma-*.min.js, fontawesome.all.min.js
 │   │   └── index.js            sticky-nav, hero playlist + toggle, lazy-load, pill-tab swap, single-play
-│   ├── images/             teaser stills (LFS)
+│   ├── images/             teaser stills
 │   ├── posters/            first-frame thumbnails for every video (ffmpeg-generated)
-│   ├── videos/             all MP4/MOV clips (LFS)
 │   └── pdfs/
-│       └── motionbricks_siggraph_2026.pdf  (LFS)
+│       └── motionbricks_siggraph_2026.pdf
 ```
+
+Videos are served from an external CDN and are not stored in this repository.
 
 ## Git LFS
 
-`.gitattributes` tracks `*.mp4 *.mov *.webm *.pdf *.png`. Any new file with these extensions is auto-routed to LFS on commit.
+`.gitattributes` tracks `*.pdf *.png`. Run `git lfs install` once per machine.
 
-Regenerate posters after adding new videos:
+Regenerate posters after adding new videos (tries first frame, falls back to a later timestamp if the intro is mostly black):
 
 ```bash
 cd static
-for v in videos/*.mp4 videos/*.mov videos/smart_locomotion/*.mp4 videos/smart_object/*.mp4; do
-  out="posters/${v#videos/}"; out="${out%.*}.jpg"
+yavg_at() {
+  ffmpeg -ss "$2" -i "$1" -vframes 1 -vf "signalstats,metadata=print" -f null - 2>&1 \
+    | grep -oE 'lavfi\.signalstats\.YAVG=[0-9.]+' | head -1 | cut -d= -f2
+}
+gen() {
+  local src="$1" out="$2" t=0
+  for cand in 0 5 10 15; do
+    local y=$(yavg_at "$src" "$cand")
+    if awk -v y="$y" 'BEGIN{exit !(y+0 >= 30)}'; then t=$cand; break; fi
+    t=$cand
+  done
   mkdir -p "$(dirname "$out")"
-  ffmpeg -y -loglevel error -ss 0.2 -i "$v" -frames:v 1 -q:v 4 -vf "scale='min(1280,iw)':-2" "$out"
-done
+  ffmpeg -y -loglevel error -ss "$t" -i "$src" -frames:v 1 -q:v 4 -vf "scale='min(1280,iw)':-2" "$out"
+}
+# example: gen videos/foo.mp4 posters/foo.jpg
 ```
 
 ## Key features
@@ -68,8 +70,5 @@ done
 
 ## Pass 2 TODO
 
-- [ ] Replace `#` placeholders for the arXiv and Code buttons with real URLs (Code currently points at `NVlabs/GR00T-WholeBodyControl/tree/main/motionbricks`).
-- [ ] Fill in author homepage links in `index.html`.
+- [ ] Replace the `#` placeholder for the arXiv button with the real URL once assigned.
 - [ ] Update BibTeX with the official ACM DOI once available.
-- [ ] When `research.nvidia.com/labs/motionbricks/assets/` access lands, move the heaviest videos (`aibm_runtime_main_demo_latest_art_v3.mp4`, `motionbricks_demo_1080p30f.mp4`, `runtime_aibm_so_authoring_1.5x.mp4`) off the repo and onto the CDN — same pattern as GEAR-SONIC.
-- [ ] Enable the sandbox-friendly LFS locks: `git config lfs.https://gitlab-master.nvidia.com/tingwuw/motionbricks_webpage.git/info/lfs.locksverify true` (optional, suppresses the noise on push).
