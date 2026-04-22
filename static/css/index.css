@@ -1,0 +1,1365 @@
+/* NVIDIA Sans — loaded from NVIDIA's public CDN (same source nvidia.com uses) */
+@font-face {
+  font-family: 'NVIDIA';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url(https://images.nvidia.com/etc/designs/nvidiaGDC/clientlibs_base/fonts/nvidia-sans/GLOBAL/NVIDIASans_W_Lt.woff2) format("woff2"),
+       url(https://images.nvidia.com/etc/designs/nvidiaGDC/clientlibs_base/fonts/nvidia-sans/GLOBAL/NVIDIASans_W_Lt.woff) format("woff");
+}
+@font-face {
+  font-family: 'NVIDIA';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(https://images.nvidia.com/etc/designs/nvidiaGDC/clientlibs_base/fonts/nvidia-sans/GLOBAL/NVIDIASans_W_Rg.woff2) format("woff2"),
+       url(https://images.nvidia.com/etc/designs/nvidiaGDC/clientlibs_base/fonts/nvidia-sans/GLOBAL/NVIDIASans_W_Rg.woff) format("woff");
+}
+@font-face {
+  font-family: 'NVIDIA';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(https://images.nvidia.com/etc/designs/nvidiaGDC/clientlibs_base/fonts/nvidia-sans/GLOBAL/NVIDIASans_W_Md.woff2) format("woff2"),
+       url(https://images.nvidia.com/etc/designs/nvidiaGDC/clientlibs_base/fonts/nvidia-sans/GLOBAL/NVIDIASans_W_Md.woff) format("woff");
+}
+@font-face {
+  font-family: 'NVIDIA';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(https://images.nvidia.com/etc/designs/nvidiaGDC/clientlibs_base/fonts/nvidia-sans/GLOBAL/NVIDIASans_W_Bd.woff2) format("woff2"),
+       url(https://images.nvidia.com/etc/designs/nvidiaGDC/clientlibs_base/fonts/nvidia-sans/GLOBAL/NVIDIASans_W_Bd.woff) format("woff");
+}
+
+:root {
+  --accent: #76b900;
+  --accent-dark: #5b8f00;
+  --accent-soft: rgba(118, 185, 0, 0.12);
+  --ink: #111418;
+  --ink-soft: #2b2f36;
+  --muted: #5a6170;
+  --hairline: #e4e6eb;
+  --paper: #fafaf7;
+  --paper-2: #f2f2ec;
+  --card: #ffffff;
+  --shadow-sm: 0 1px 2px rgba(17, 20, 24, 0.04), 0 2px 8px rgba(17, 20, 24, 0.04);
+  --shadow-md: 0 2px 6px rgba(17, 20, 24, 0.05), 0 12px 32px rgba(17, 20, 24, 0.08);
+  --radius: 10px;
+  --radius-lg: 14px;
+  --media-max: 960px;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'NVIDIA', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "ss01", "cv01", "cv02";
+}
+
+h1, h2, h3, h4, h5, h6,
+.title,
+.subtitle,
+.button,
+.navbar-item,
+.tabs,
+.section .content p,
+.section .content li {
+  font-family: 'NVIDIA', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+}
+
+section[id] {
+  scroll-margin-top: 72px;
+}
+
+/* ---------- Sticky top nav ---------- */
+
+.site-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  height: 64px;
+  background: rgba(14, 16, 20, 0.55);
+  backdrop-filter: saturate(140%) blur(14px);
+  -webkit-backdrop-filter: saturate(140%) blur(14px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.site-nav.is-scrolled {
+  background: rgba(255, 255, 255, 0.82);
+  border-bottom-color: var(--hairline);
+  box-shadow: 0 2px 14px rgba(17, 20, 24, 0.06);
+}
+
+.site-nav-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.site-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: #fff;
+  font-family: 'NVIDIA', sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.site-nav.is-scrolled .site-nav-brand {
+  color: var(--ink);
+}
+
+.brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: linear-gradient(120deg, #76b900 0%, #2b9348 100%);
+  color: #fff;
+  border-radius: 7px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  box-shadow: 0 2px 8px rgba(118, 185, 0, 0.35);
+}
+
+.brand-text {
+  font-size: 0.98rem;
+}
+
+.site-nav-links {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.site-nav-links a {
+  color: rgba(255, 255, 255, 0.82);
+  font-family: 'NVIDIA', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 500;
+  padding: 0.4rem 0.75rem;
+  border-radius: 7px;
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+
+.site-nav-links a:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.site-nav.is-scrolled .site-nav-links a {
+  color: var(--ink-soft);
+}
+
+.site-nav.is-scrolled .site-nav-links a:hover {
+  color: var(--accent-dark);
+  background: var(--accent-soft);
+}
+
+.site-nav-toggle {
+  display: none;
+  background: transparent;
+  border: 0;
+  padding: 0.5rem;
+  cursor: pointer;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.site-nav-toggle span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: #fff;
+  border-radius: 2px;
+  transition: background 0.15s ease, transform 0.2s ease, opacity 0.2s ease;
+}
+
+.site-nav.is-scrolled .site-nav-toggle span {
+  background: var(--ink);
+}
+
+/* ---------- Cinema hero ---------- */
+
+.hero-cinema {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  overflow: hidden;
+  color: #fff;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 6rem 1.5rem 4.5rem;
+  background: #050608;
+}
+
+.hero-cinema-video {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.hero-cinema-video video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+/* If the teaser video is missing, the poster image on the <video> element is used —
+   but some browsers don't stretch it to fill. Add an image fallback via background. */
+.hero-cinema-video::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('../images/static_teaser.png') center/cover no-repeat;
+  z-index: -1;
+}
+
+.hero-cinema-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(180deg, rgba(4, 6, 8, 0.3) 0%, rgba(4, 6, 8, 0.15) 38%, rgba(4, 6, 8, 0.85) 100%),
+    radial-gradient(1400px 700px at 50% 85%, rgba(118, 185, 0, 0.2), transparent 70%);
+}
+
+.hero-cinema-content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1100px;
+  padding-top: 1rem;
+}
+
+.cinema-title {
+  font-family: 'NVIDIA', sans-serif;
+  font-size: clamp(6rem, 22vw, 22rem) !important;
+  font-weight: 700 !important;
+  line-height: 0.88 !important;
+  margin-bottom: 1.4rem !important;
+  letter-spacing: -0.05em;
+}
+
+.cinema-title .motionbricks-logo {
+  background: linear-gradient(100deg, #aef250 0%, #76b900 45%, #2b9348 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: #aef250;
+  text-shadow: 0 2px 22px rgba(118, 185, 0, 0.25);
+}
+
+.cinema-title .motionbricks-logo::after {
+  display: none;
+}
+
+.cinema-subtitle {
+  font-family: 'NVIDIA', sans-serif;
+  font-size: clamp(1rem, 1.8vw, 1.4rem);
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.92);
+  line-height: 1.35;
+  max-width: 880px;
+  margin: 0 auto 1.25rem;
+  letter-spacing: -0.005em;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.45);
+}
+
+.cinema-venue {
+  font-family: 'NVIDIA', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.78);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 1.75rem;
+}
+
+.cinema-authors {
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 1rem !important;
+  line-height: 1.9 !important;
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+.cinema-authors .author-block a {
+  color: rgba(255, 255, 255, 0.95);
+  border-bottom-color: transparent;
+}
+
+.cinema-authors .author-block a:hover {
+  color: #d7f58b;
+  border-bottom-color: #d7f58b;
+}
+
+.cinema-authors sup {
+  color: #aef250;
+}
+
+.cinema-affiliations {
+  color: rgba(255, 255, 255, 0.75);
+  margin-top: 0.75rem !important;
+  font-size: 0.88rem;
+}
+
+.cinema-affiliations sup {
+  color: #aef250;
+}
+
+.cinema-notes {
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 0.3rem !important;
+  font-size: 0.78rem;
+}
+
+.cinema-links {
+  margin-top: 1.75rem !important;
+}
+
+.cinema-links .button {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #fff;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.cinema-links .button:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #0c1006;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px rgba(118, 185, 0, 0.35);
+}
+
+.hero-bg-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1.4rem auto 0;
+  padding: 0.35rem 0.45rem 0.35rem 1rem;
+  background: rgba(10, 12, 16, 0.55);
+  backdrop-filter: saturate(140%) blur(12px);
+  -webkit-backdrop-filter: saturate(140%) blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+
+.hero-bg-label {
+  font-family: 'NVIDIA', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.hero-bg-btn {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: rgba(255, 255, 255, 0.85);
+  font-family: 'NVIDIA', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+.hero-bg-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.hero-bg-btn.is-active {
+  color: #0c1006;
+  background: var(--accent);
+  box-shadow: 0 4px 14px rgba(118, 185, 0, 0.4);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 600px) {
+  .hero-bg-toggle {
+    margin-top: 1rem;
+    padding: 0.3rem 0.35rem 0.3rem 0.75rem;
+    gap: 0.35rem;
+  }
+  .hero-bg-label {
+    font-size: 0.72rem;
+  }
+  .hero-bg-btn {
+    font-size: 0.82rem;
+    padding: 0.4rem 0.8rem;
+  }
+}
+
+.hero-cinema-scroll {
+  position: absolute;
+  bottom: 1.6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: scroll-bounce 2s ease-in-out infinite;
+}
+
+.scroll-chevron {
+  width: 16px;
+  height: 16px;
+  border-right: 2px solid rgba(255, 255, 255, 0.75);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.75);
+  transform: rotate(45deg);
+  margin-top: -6px;
+}
+
+@keyframes scroll-bounce {
+  0%, 100% { transform: translate(-50%, 0); }
+  50% { transform: translate(-50%, 8px); }
+}
+
+/* ---------- Authors section (between hero and overview) ---------- */
+
+.authors-section {
+  background: var(--paper);
+  padding: 3rem 1.5rem 1.25rem;
+}
+
+.authors-list {
+  color: var(--ink);
+  font-family: 'NVIDIA', sans-serif;
+  font-size: 1.08rem !important;
+  line-height: 2 !important;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.authors-list .author-block {
+  display: inline-block;
+  margin: 0 0.3rem;
+  white-space: nowrap;
+}
+
+.authors-list a {
+  color: var(--ink-soft);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.authors-list a:hover {
+  color: var(--accent-dark);
+  border-bottom-color: var(--accent);
+}
+
+.authors-list sup {
+  color: var(--accent-dark);
+  font-weight: 600;
+}
+
+.authors-affiliations {
+  margin-top: 0.9rem !important;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.authors-affiliations sup {
+  color: var(--accent-dark);
+  font-weight: 700;
+}
+
+.authors-notes {
+  margin-top: 0.5rem !important;
+  color: var(--muted);
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+}
+
+/* ---------- Stat section (below hero) ---------- */
+
+.stat-section {
+  background: var(--paper);
+  padding: 2.25rem 1.5rem 1.5rem;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.stat-section .stat-strip {
+  margin-top: 0;
+  border-top: none;
+  border-bottom: none;
+  padding: 0;
+}
+
+/* ---------- Responsive nav + hero ---------- */
+
+@media (max-width: 900px) {
+  .site-nav-toggle {
+    display: flex;
+  }
+
+  .site-nav-links {
+    position: absolute;
+    top: 64px;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    gap: 0;
+    background: rgba(14, 16, 20, 0.95);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    padding: 0.75rem 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s ease;
+  }
+
+  .site-nav.is-open .site-nav-links {
+    max-height: 80vh;
+  }
+
+  .site-nav.is-scrolled .site-nav-links {
+    background: rgba(255, 255, 255, 0.98);
+    border-top-color: var(--hairline);
+  }
+
+  .site-nav-links a {
+    padding: 0.75rem 0.5rem;
+    border-radius: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .site-nav.is-scrolled .site-nav-links a {
+    border-bottom-color: var(--hairline);
+  }
+
+  .site-nav-links a:last-child {
+    border-bottom: none;
+  }
+
+  .hero-cinema {
+    min-height: 92vh;
+    padding: 5rem 1rem 3.5rem;
+  }
+
+  .cinema-title {
+    font-size: clamp(4.2rem, 24vw, 8.5rem) !important;
+  }
+
+  .authors-list {
+    font-size: 0.95rem !important;
+    line-height: 1.9 !important;
+  }
+
+  .cinema-subtitle {
+    font-size: 1rem;
+  }
+
+  .cinema-authors {
+    font-size: 0.9rem !important;
+    line-height: 1.8 !important;
+  }
+
+  .cinema-links {
+    margin-top: 1.25rem !important;
+  }
+}
+
+/* ---------- Hero ---------- */
+
+.hero {
+  background:
+    radial-gradient(1100px 500px at 50% -10%, var(--accent-soft), transparent 60%),
+    linear-gradient(180deg, #ffffff 0%, var(--paper) 100%);
+  padding-top: 4.5rem;
+  padding-bottom: 1.5rem;
+}
+
+.hero .hero-body {
+  padding: 3rem 1.5rem 1.5rem;
+}
+
+.publication-title {
+  font-family: 'NVIDIA', 'Inter', sans-serif;
+  font-weight: 600 !important;
+  letter-spacing: -0.02em;
+  line-height: 1.12;
+  font-size: clamp(1.8rem, 3.4vw, 2.9rem) !important;
+  color: var(--ink);
+  margin-bottom: 0.75rem !important;
+}
+
+.motionbricks-logo {
+  font-family: 'NVIDIA', 'Inter', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  background: linear-gradient(100deg, #76b900 0%, #2b9348 55%, #0f7a3a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--accent);
+  position: relative;
+}
+
+.motionbricks-logo::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.12em;
+  height: 0.22em;
+  background: var(--accent-soft);
+  border-radius: 4px;
+  z-index: -1;
+}
+
+.publication-venue {
+  color: var(--muted);
+  font-family: 'NVIDIA', sans-serif;
+  font-weight: 500 !important;
+  letter-spacing: 0.02em;
+  margin-top: 0 !important;
+  margin-bottom: 1.75rem !important;
+  text-transform: none;
+}
+
+.publication-venue::before {
+  content: '';
+  display: inline-block;
+  width: 28px;
+  height: 1px;
+  background: var(--muted);
+  vertical-align: middle;
+  margin-right: 0.6rem;
+  opacity: 0.4;
+}
+
+.publication-venue::after {
+  content: '';
+  display: inline-block;
+  width: 28px;
+  height: 1px;
+  background: var(--muted);
+  vertical-align: middle;
+  margin-left: 0.6rem;
+  opacity: 0.4;
+}
+
+/* ---------- Authors ---------- */
+
+.publication-authors {
+  font-family: 'NVIDIA', sans-serif;
+  line-height: 2;
+  font-size: 1.05rem !important;
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+.publication-authors .author-block {
+  display: inline-block;
+  margin: 0 0.35rem;
+  white-space: nowrap;
+}
+
+.publication-authors a {
+  color: var(--ink-soft);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.publication-authors a:hover {
+  color: var(--accent-dark);
+  border-bottom-color: var(--accent);
+}
+
+.publication-authors sup {
+  color: var(--accent-dark);
+  font-weight: 600;
+}
+
+.publication-affiliations {
+  margin-top: 1rem;
+  color: var(--muted);
+  font-family: 'NVIDIA', sans-serif;
+  font-size: 0.92rem;
+  letter-spacing: 0.01em;
+}
+
+.publication-affiliations .affiliation-block {
+  display: inline-block;
+  margin: 0 0.75rem;
+}
+
+.publication-affiliations sup {
+  color: var(--accent-dark);
+  font-weight: 700;
+  margin-right: 0.15rem;
+}
+
+.publication-notes {
+  margin-top: 0.5rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+}
+
+/* ---------- Button bar ---------- */
+
+.publication-links {
+  margin-top: 2rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  justify-content: center;
+}
+
+.publication-links .link-block {
+  margin: 0;
+}
+
+.publication-links .button {
+  font-family: 'NVIDIA', sans-serif;
+  font-weight: 500;
+  font-size: 0.95rem;
+  background: var(--ink);
+  color: #fff;
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  padding: 0.6rem 1.15rem;
+  height: auto;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  box-shadow: 0 1px 2px rgba(17, 20, 24, 0.08);
+}
+
+.publication-links .button:hover {
+  background: var(--accent-dark);
+  border-color: var(--accent-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(91, 143, 0, 0.25);
+  color: #fff;
+}
+
+.publication-links .button .icon:first-child {
+  margin-right: 0.35rem;
+}
+
+/* ---------- Stat strip ---------- */
+
+.stat-strip {
+  margin-top: 2.25rem;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  max-width: 820px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 1rem 0.5rem;
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.stat {
+  text-align: center;
+  padding: 0.35rem 0.5rem;
+}
+
+.stat + .stat {
+  border-left: 1px solid var(--hairline);
+}
+
+.stat-value {
+  font-family: 'NVIDIA', sans-serif;
+  font-weight: 600;
+  font-size: clamp(1.3rem, 2.2vw, 1.75rem);
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  line-height: 1.1;
+}
+
+.stat-value .stat-unit {
+  font-size: 0.7em;
+  color: var(--accent-dark);
+  margin-left: 0.1em;
+  font-weight: 500;
+}
+
+.stat-label {
+  font-family: 'NVIDIA', sans-serif;
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 0.3rem;
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 640px) {
+  .stat-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.25rem 0.75rem;
+  }
+  .stat + .stat {
+    border-left: none;
+  }
+  .stat:nth-child(2n) {
+    border-left: 1px solid var(--hairline);
+  }
+  .stat:nth-child(n+3) {
+    border-top: 1px solid var(--hairline);
+    padding-top: 0.75rem;
+    margin-top: 0.25rem;
+  }
+}
+
+/* ---------- Teaser ---------- */
+
+.hero.teaser {
+  background: transparent;
+  padding-top: 0.5rem;
+  padding-bottom: 0;
+}
+
+.hero.teaser .hero-body {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.hero.teaser video,
+.hero.teaser img {
+  width: 100%;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  background: #000;
+  display: block;
+}
+
+.hero.teaser .subtitle {
+  margin-top: 1.5rem;
+  color: var(--ink-soft);
+  font-family: 'NVIDIA', sans-serif;
+  font-weight: 400;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  max-width: 820px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.hero.teaser .subtitle strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* ---------- Section rhythm ---------- */
+
+.section {
+  padding: 3.5rem 1.5rem;
+  position: relative;
+}
+
+.section + .section {
+  border-top: 1px solid var(--hairline);
+}
+
+.section:nth-of-type(even) {
+  background: var(--paper-2);
+}
+
+.section .title.is-3 {
+  font-family: 'NVIDIA', sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  font-size: 1.9rem;
+  color: var(--ink);
+  margin-bottom: 1.25rem !important;
+  display: inline-block;
+  position: relative;
+}
+
+.section .title.is-3::after {
+  content: '';
+  display: block;
+  width: 44px;
+  height: 3px;
+  background: var(--accent);
+  border-radius: 2px;
+  margin: 0.65rem auto 0;
+}
+
+.section .title.is-5 {
+  font-family: 'NVIDIA', sans-serif;
+  font-weight: 600;
+  color: var(--ink-soft);
+  letter-spacing: -0.005em;
+  margin-bottom: 0.75rem !important;
+}
+
+.section-caption {
+  color: var(--muted);
+  max-width: 780px;
+  margin: 0 auto 1.5rem auto;
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+/* ---------- Overview media (teaser inside section 1) ---------- */
+
+.overview-media {
+  max-width: 1040px;
+  margin: 0.5rem auto 1.75rem auto;
+}
+
+.overview-media video {
+  width: 100%;
+  display: block;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  background: #0a0c10;
+  border: 1px solid rgba(17, 20, 24, 0.06);
+}
+
+.overview-caption {
+  margin-top: 1rem;
+  text-align: center;
+  color: var(--ink-soft);
+  font-family: 'NVIDIA', sans-serif;
+  font-size: 1.02rem;
+  line-height: 1.6;
+  width: 100%;
+  max-width: var(--media-max);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.overview-caption strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.overview-caption em {
+  color: var(--accent-dark);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.overview-figure {
+  width: 100%;
+  max-width: var(--media-max);
+  margin: 0 auto 1.75rem auto;
+}
+
+.overview-text {
+  width: 100%;
+  max-width: var(--media-max);
+  margin: 0 auto 1.5rem auto;
+}
+
+.overview-figure img {
+  width: 100%;
+  display: block;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--hairline);
+}
+
+#overview .overview-caption {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+#overview .content {
+  margin-top: 0.5rem;
+}
+
+/* ---------- Content / abstract ---------- */
+
+.section .content {
+  font-size: 1.02rem;
+  line-height: 1.75;
+  color: var(--ink-soft);
+}
+
+.section .content p + p {
+  margin-top: 1rem;
+}
+
+.section .content strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.section .content em {
+  color: var(--accent-dark);
+  font-style: normal;
+  font-weight: 500;
+}
+
+/* ---------- Media cards ---------- */
+
+.section video {
+  width: 100%;
+  max-width: var(--media-max);
+  display: block;
+  margin: 1rem auto;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  background: #0a0c10;
+  border: 1px solid rgba(17, 20, 24, 0.06);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.section video:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(17, 20, 24, 0.08), 0 18px 40px rgba(17, 20, 24, 0.12);
+}
+
+/* ---------- Pill-tab video switcher (Kimodo-style) ---------- */
+
+.video-display-module {
+  max-width: var(--media-max);
+  margin: 0.75rem auto 0 auto;
+}
+
+.pill-tabs {
+  list-style: none;
+  padding: 0;
+  margin: 0 auto 1rem auto;
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  max-width: var(--media-max);
+}
+
+.pill-tab {
+  font-family: 'NVIDIA', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--muted);
+  background: #fff;
+  border: 1px solid var(--hairline);
+  padding: 0.4rem 0.95rem;
+  border-radius: 999px;
+  cursor: pointer;
+  user-select: none;
+  line-height: 1.3;
+  transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+
+.pill-tab:hover {
+  color: var(--accent-dark);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.pill-tab.is-active {
+  color: #0c1006;
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(118, 185, 0, 0.28);
+}
+
+.pill-video {
+  background: #0a0c10;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  max-width: var(--media-max);
+  margin: 0 auto;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--hairline);
+}
+
+.pill-video video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  margin: 0;
+  box-shadow: none;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  transition: opacity 0.18s ease;
+}
+
+.pill-video video:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* ---------- Kimodo-style video grid ---------- */
+
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+  max-width: 1140px;
+  margin: 0.5rem auto 1.5rem auto;
+  padding: 0 0.25rem;
+}
+
+.video-grid--halves {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 1040px;
+}
+
+.video-card {
+  margin: 0;
+  background: var(--card);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.video-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: rgba(118, 185, 0, 0.35);
+}
+
+.video-card-media {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #0a0c10;
+  overflow: hidden;
+}
+
+.video-card-media video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  margin: 0;
+  box-shadow: none;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  transition: none;
+}
+
+.video-card-media video:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.video-card figcaption {
+  padding: 0.75rem 1rem 0.95rem;
+  font-family: 'NVIDIA', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--ink);
+  text-align: center;
+  line-height: 1.4;
+  border-top: 1px solid var(--hairline);
+  background: var(--card);
+}
+
+.video-card-tag {
+  display: inline-block;
+  margin-left: 0.35rem;
+  padding: 0.05rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--accent-dark);
+  background: var(--accent-soft);
+  border-radius: 999px;
+  vertical-align: middle;
+  letter-spacing: 0.01em;
+  text-transform: lowercase;
+}
+
+.smart-object-workflow-heading,
+.submodule-heading {
+  margin-top: 2rem !important;
+  color: var(--ink-soft) !important;
+  letter-spacing: -0.01em;
+}
+
+.submodule + .submodule {
+  margin-top: 2.5rem;
+}
+
+@media (max-width: 900px) {
+  .video-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .video-grid,
+  .video-grid--halves {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+}
+
+.method-figure {
+  width: 100%;
+  max-width: var(--media-max);
+  display: block;
+  margin: 0 auto 1.5rem auto;
+  background: var(--card);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.method-caption {
+  color: var(--ink-soft);
+  max-width: 900px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+.inbetweening-grid {
+  margin: 2rem auto 0 auto;
+  max-width: var(--media-max);
+  width: 100%;
+}
+
+.inbetweening-grid img {
+  width: 100%;
+  display: block;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.inbetweening-grid figcaption {
+  margin-top: 0.85rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+/* ---------- BibTeX ---------- */
+
+#bibtex {
+  background: var(--paper-2);
+}
+
+#bibtex pre {
+  background: #0f1115;
+  color: #e5e9ef;
+  border: 1px solid #1a1d23;
+  border-radius: var(--radius);
+  padding: 1.4rem 1.5rem;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  overflow-x: auto;
+  font-family: 'JetBrains Mono', 'Menlo', 'SF Mono', 'Consolas', monospace;
+  box-shadow: var(--shadow-md);
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+#bibtex pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+
+/* ---------- Footer ---------- */
+
+.footer {
+  background: var(--ink);
+  color: #d2d6de;
+  padding: 2.5rem 1.5rem 2rem;
+}
+
+.footer .content,
+.footer p {
+  color: #aeb4bf;
+  font-size: 0.9rem;
+}
+
+.footer a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(118, 185, 0, 0.35);
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.footer a:hover {
+  color: #9fdc2d;
+  border-bottom-color: #9fdc2d;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 768px) {
+  .hero {
+    padding-top: 2rem;
+  }
+
+  .hero .hero-body {
+    padding: 1.5rem 1rem 1rem;
+  }
+
+  .publication-title {
+    font-size: 1.7rem !important;
+    line-height: 1.2;
+  }
+
+  .publication-authors {
+    font-size: 0.95rem !important;
+    line-height: 1.9;
+  }
+
+  .publication-links {
+    margin-top: 1.5rem;
+  }
+
+  .publication-links .button {
+    font-size: 0.85rem;
+    padding: 0.5rem 0.9rem;
+  }
+
+  .section {
+    padding: 2.5rem 1rem;
+  }
+
+  .section .title.is-3 {
+    font-size: 1.5rem;
+  }
+}

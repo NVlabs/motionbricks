@@ -1,0 +1,11 @@
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
+
+# Video assets are hosted on NVIDIA research CloudFront, not in this repo
+*.mp4
+*.mov
+*.webm
+static/videos/

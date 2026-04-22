@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="MotionBricks: Scalable Real-Time Motions with Modular Latent Generative Model and Smart Primitives.">
+  <meta name="keywords" content="MotionBricks, motion synthesis, character animation, generative models, humanoid robotics, SIGGRAPH 2026">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MotionBricks: Scalable Real-Time Motions with Modular Latent Generative Model and Smart Primitives</title>
+
+  <link rel="preconnect" href="https://images.nvidia.com" crossorigin>
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+</head>
+<body>
+
+<nav class="site-nav" id="site-nav">
+  <div class="site-nav-inner">
+    <a class="site-nav-brand" href="#top">
+      <span class="brand-mark">MB</span>
+      <span class="brand-text">MotionBricks</span>
+    </a>
+    <button class="site-nav-toggle" aria-label="Toggle menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="site-nav-links">
+      <a href="#overview">Overview</a>
+      <a href="#full-uncut-animation-demo">Uncut Animation Demo</a>
+      <a href="#smart-locomotion">Smart Locomotion</a>
+      <a href="#smart-objects">Smart Objects</a>
+      <a href="#smart-primitive-setup">Smart Primitive Setup</a>
+      <a href="#inbetweening">Comparisons</a>
+      <a href="#code-release">Code</a>
+      <a href="#bibtex">BibTeX</a>
+    </div>
+  </div>
+</nav>
+
+<section class="hero-cinema" id="top">
+  <div class="hero-cinema-video">
+    <video id="heroVideo"
+           autoplay muted playsinline preload="auto"
+           poster="./static/images/static_teaser.png"
+           data-playlist='[
+             {"src":"https://research-staging.nvidia.com/labs/gear/motionbricks/videos/motionbricks_teaser_demo_1080p.mp4","label":"Animation","poster":"./static/images/static_teaser.png"},
+             {"src":"https://research-staging.nvidia.com/labs/gear/motionbricks/videos/motionbricks_teaser_demo_robotics_1080p.mp4","label":"Robotics","poster":"./static/posters/motionbricks_teaser_demo_robotics_1080p.jpg"}
+           ]'>
+    </video>
+  </div>
+  <div class="hero-cinema-overlay"></div>
+
+  <div class="hero-cinema-content">
+    <div class="container is-max-desktop has-text-centered">
+      <h1 class="publication-title cinema-title">
+        <span class="motionbricks-logo">MotionBricks</span>
+      </h1>
+      <h2 class="cinema-subtitle">
+        Scalable Real-Time Motions with Modular Latent Generative Model and Smart Primitives
+      </h2>
+      <h3 class="cinema-venue">ACM Transactions on Graphics &middot; SIGGRAPH 2026</h3>
+
+      <div class="publication-links cinema-links">
+        <span class="link-block">
+          <a href="./static/pdfs/motionbricks_siggraph_2026.pdf" class="external-link button is-normal is-rounded">
+            <span class="icon"><i class="fas fa-file-pdf"></i></span>
+            <span>Paper</span>
+          </a>
+        </span>
+        <span class="link-block">
+          <a href="#" class="external-link button is-normal is-rounded">
+            <span class="icon"><i class="fas fa-scroll"></i></span>
+            <span>arXiv</span>
+          </a>
+        </span>
+        <span class="link-block">
+          <a href="https://github.com/NVlabs/GR00T-WholeBodyControl/tree/main/motionbricks" class="external-link button is-normal is-rounded">
+            <span class="icon"><i class="fab fa-github"></i></span>
+            <span>Code</span>
+          </a>
+        </span>
+        <span class="link-block">
+          <a href="#bibtex" class="external-link button is-normal is-rounded">
+            <span class="icon"><i class="fas fa-quote-left"></i></span>
+            <span>BibTeX</span>
+          </a>
+        </span>
+      </div>
+
+      <div class="hero-bg-toggle" id="heroBgToggle" role="group" aria-label="Switch background teaser">
+        <span class="hero-bg-label">Switch teaser:</span>
+      </div>
+    </div>
+  </div>
+
+  <a class="hero-cinema-scroll" href="#overview" aria-label="Scroll to overview">
+    <span class="scroll-chevron"></span>
+  </a>
+</section>
+
+<section class="authors-section">
+  <div class="container is-max-desktop has-text-centered">
+    <div class="publication-authors authors-list">
+      <span class="author-block"><a href="#">Tingwu Wang</a><sup>1,&dagger;,&#9993;</sup>,</span>
+      <span class="author-block"><a href="#">Olivier Dionne</a><sup>1,&dagger;</sup>,</span>
+      <span class="author-block"><a href="#">Michael De Ruyter</a><sup>1</sup>,</span>
+      <span class="author-block"><a href="#">David Minor</a><sup>1</sup>,</span>
+      <span class="author-block"><a href="#">Davis Rempe</a><sup>1</sup>,</span>
+      <span class="author-block"><a href="#">Kaifeng Zhao</a><sup>1,2</sup>,</span>
+      <span class="author-block"><a href="#">Mathis Petrovich</a><sup>1</sup>,</span>
+      <span class="author-block"><a href="#">Ye Yuan</a><sup>1</sup>,</span>
+      <span class="author-block"><a href="#">Chenran Li</a><sup>1</sup>,</span>
+      <span class="author-block"><a href="#">Zhengyi Luo</a><sup>1</sup>,</span>
+      <span class="author-block"><a href="#">Brian Robison</a><sup>1</sup>,</span>
+      <span class="author-block"><a href="#">Xavier Blackwell</a><sup>1</sup>,</span>
+      <span class="author-block"><a href="#">Bernardo Antoniazzi</a><sup>1</sup>,</span>
+      <span class="author-block"><a href="#">Xue Bin Peng</a><sup>1,3</sup>,</span>
+      <span class="author-block"><a href="#">Yuke Zhu</a><sup>1,4</sup>,</span>
+      <span class="author-block"><a href="#">Simon Yuen</a><sup>1</sup></span>
+    </div>
+
+    <div class="publication-affiliations authors-affiliations">
+      <span class="affiliation-block"><sup>1</sup>NVIDIA</span>
+      <span class="affiliation-block"><sup>2</sup>ETH Zürich</span>
+      <span class="affiliation-block"><sup>3</sup>Simon Fraser University</span>
+      <span class="affiliation-block"><sup>4</sup>The University of Texas at Austin</span>
+    </div>
+
+    <div class="publication-notes authors-notes">
+      <sup>&dagger;</sup>Joint first authors &nbsp;·&nbsp; <sup>&#9993;</sup>Corresponding author
+    </div>
+  </div>
+</section>
+
+<section class="section" id="overview">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Overview</h2>
+        <figure class="overview-figure">
+          <img src="./static/images/teaser_image_motionbricks.jpg" alt="MotionBricks overview — unified control across animation and robotics">
+        </figure>
+      </div>
+    </div>
+    <div class="overview-text">
+      <p class="overview-caption">
+        <strong>MotionBricks</strong> achieves <em>15000 FPS</em> and <em>2 ms</em> latency covering over <em>350,000</em> motion skills by a single neural backbone.
+      </p>
+      <div class="content has-text-justified">
+        <p>
+          We introduce MotionBricks: a large-scale, real-time generative framework with a two-fold solution. First, we propose a large-scale modular latent generative backbone tailored for robust real-time motion generation, effectively modeling a dataset of over 350,000 motion clips with a single model. Second, we introduce smart primitives that provide a unified, robust, and intuitive interface for authoring both navigation and object interaction. Notably, MotionBricks applies to new downstream tasks in a zero-shot manner — no fine-tuning or task-specific tagging required — so applications can be assembled in a plug-and-play manner like stacking bricks, without expert animation knowledge.
+        </p>
+      </div>
+    </div>
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <video controls playsinline preload="none" poster="./static/posters/motionbricks_demo_1080p30f.jpg" data-lazy-video>
+          <source data-src="https://research-staging.nvidia.com/labs/gear/motionbricks/videos/motionbricks_demo_1080p30f.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="full-uncut-animation-demo">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Uncut Animation Demo</h2>
+        <p class="content has-text-justified">
+          Here we showcase a 2:40 minutes uncut UE5 demo spanning the full spectrum of navigation and object-scene interaction required for industry level game designs. Every motion is generated by neural networks — no foot-locking, no blending, no collision detection, no hand-authored transitions.
+          <br>
+          To our knowledge, MotionBricks is the <em>first</em> neural model to reach this level of motion quality, controllability, complexity, and completeness.
+        </p>
+        <video controls playsinline preload="none" poster="./static/posters/aibm_runtime_main_demo_latest_art_v3.jpg" data-lazy-video>
+          <source data-src="https://research-staging.nvidia.com/labs/gear/motionbricks/videos/aibm_runtime_main_demo_latest_art_v3.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="smart-locomotion">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Smart Locomotion</h2>
+        <p class="content has-text-justified">
+          Smart locomotion offers a unified, plug-and-play interface for navigation — seamlessly and robustly composing natural motions from arbitrary velocity, heading, and style commands, with no retraining or per-task tuning.
+        </p>
+      </div>
+    </div>
+    <div class="submodule">
+      <h4 class="title is-5 has-text-centered submodule-heading">Single Styles</h4>
+      <p class="has-text-centered section-caption">
+        Distinct stylized locomotion — injured, zombie, skipping, strafing — generated zero-shot from a single smart-primitive prompt.
+      </p>
+      <div class="video-display-module">
+        <ul class="pill-tabs" id="locomotion-style-pills" data-video-target="locomotionStyleVideo">
+          <li class="pill-tab is-active" data-src="https://research-staging.nvidia.com/labs/gear/motionbricks/videos/smart_locomotion/locomotion_zombie_style.mp4" data-poster="./static/posters/smart_locomotion/locomotion_zombie_style.jpg">Zombie Style</li>
+          <li class="pill-tab" data-src="https://research-staging.nvidia.com/labs/gear/motionbricks/videos/smart_locomotion/locomotion_injured_leg_style.mp4" data-poster="./static/posters/smart_locomotion/locomotion_injured_leg_style.jpg">Injured-Leg Style</li>
+          <li class="pill-tab" data-src="https://research-staging.nvidia.com/labs/gear/motionbricks/videos/smart_locomotion/locomotion_injured_torso_style.mp4" data-poster="./static/posters/smart_locomotion/locomotion_injured_torso_style.jpg">Injured-Torso Style</li>
+          <li class="pill-tab" data-src="https://research-staging.nvidia.com/labs/gear/motionbricks/videos/smart_locomotion/locomotion_skipping_style.mp4" data-poster="./static/posters/smart_locomotion/locomotion_skipping_style.jpg">Skipping Style</li>
+          <li class="pill-tab" data-src="https://research-staging.nvidia.com/labs/gear/motionbricks/videos/smart_locomotion/locomotion_2dbs_strafing.mp4" data-poster="./static/posters/smart_locomotion/locomotion_2dbs_strafing.jpg">Strafing</li>
+          <li class="pill-tab" data-src="https://research-staging.nvidia.com/labs/gear/motionbricks/videos/smart_locomotion/locomotion_2dbs_crouch_strafing.mp4" data-poster="./static/posters/smart_locomotion/locomotion_2dbs_crouch_strafing.jpg">Crouch Strafing</li>
+        </ul>
+        <div class="pill-video">
+          <video id="locomotionStyleVideo" controls muted loop playsinline preload="none" poster="./static/posters/smart_locomotion/locomotion_zombie_style.jpg" data-lazy-video>
+            <source data-src="https://research-staging.nvidia.com/labs/gear/motionbricks/videos/smart_locomotion/locomotion_zombie_style.mp4" type="video/mp4">
+          </video>
+        </div>
+      </div>
+    </div>
+    <div class="submodule">
+      <h4 class="title is-5 has-text-centered submodule-heading">Mixture of Styles</h4>
+      <p class="has-text-centered section-caption">
+        Continuous runtime transitions across speed, direction, and gait — dialed live from user commands.
+      </p>
+      <div class="video-display-module">
+        <ul class="pill-tabs" id="locomotion-mix-pills" data-video-target="locomotionMixVideo">
+          <li class="pill-tab is-active" data-src="https://research-staging.nvidia.com/labs/gear/motionbricks/videos/smart_locomotion/locomotion_mixing_all_bs.mp4" data-poster="./static/posters/smart_locomotion/locomotion_mixing_all_bs.jpg">Freestyle</li>
+          <li class="pill-tab" data-src="https://research-staging.nvidia.com/labs/gear/motionbricks/videos/smart_locomotion/locomotion_1dbs_idle_walk_jog_run.mp4" data-poster="./static/posters/smart_locomotion/locomotion_1dbs_idle_walk_jog_run.jpg">Idle &middot; Walk &middot; Jog &middot; Run</li>
+        </ul>
+        <div class="pill-video">
+          <video id="locomotionMixVideo" controls muted loop playsinline preload="none" poster="./static/posters/smart_locomotion/locomotion_mixing_all_bs.jpg" data-lazy-video>
+            <source data-src="https://research-staging.nvidia.com/labs/gear/motionbricks/videos/smart_locomotion/locomotion_mixing_all_bs.mp4" type="video/mp4">
+          </video>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="section" id="smart-objects">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Smart Objects</h2>
+        <p class="content has-text-justified">
+          Smart objects specify scene and object interaction as a flexible set of proxy keyframes; the backbone fills in the approach, contact, and follow-through — with natural variation across runs.
+        </p>
+      </div>
+    </div>
+    <div class="video-display-module">
+      <ul class="pill-tabs" id="smart-object-pills" data-video-target="smartObjectVideo">
+        <li class="pill-tab is-active" data-src="https://research-staging.nvidia.com/labs/gear/motionbricks/videos/smart_object/pickup_sword_approach_variations_v2.mp4" data-poster="./static/posters/smart_object/pickup_sword_approach_variations_v2.jpg">Pick-up Sword</li>
+        <li class="pill-tab" data-src="https://research-staging.nvidia.com/labs/gear/motionbricks/videos/smart_object/falling_variations.mp4" data-poster="./static/posters/smart_object/falling_variations.jpg">Falling</li>
+        <li class="pill-tab" data-src="https://research-staging.nvidia.com/labs/gear/motionbricks/videos/smart_object/jump_bench_approach_variations.mp4" data-poster="./static/posters/smart_object/jump_bench_approach_variations.jpg">Jump over Bench</li>
+        <li class="pill-tab" data-src="https://research-staging.nvidia.com/labs/gear/motionbricks/videos/smart_object/sitting_approach_variations.mp4" data-poster="./static/posters/smart_object/sitting_approach_variations.jpg">Sitting</li>
+        <li class="pill-tab" data-src="https://research-staging.nvidia.com/labs/gear/motionbricks/videos/3d_target_placement.mp4" data-poster="./static/posters/3d_target_placement.jpg">Interactive Authoring</li>
+      </ul>
+      <div class="pill-video">
+        <video id="smartObjectVideo" controls muted loop playsinline preload="none" poster="./static/posters/smart_object/pickup_sword_approach_variations_v2.jpg" data-lazy-video data-poster-base="./static/posters/smart_object/">
+          <source data-src="https://research-staging.nvidia.com/labs/gear/motionbricks/videos/smart_object/pickup_sword_approach_variations_v2.mp4" type="video/mp4">
+        </video>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="smart-primitive-setup">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Smart Primitive Setup</h2>
+        <p class="content has-text-justified">
+          Authoring smart-object behaviors end-to-end inside Unreal Engine 5 — plug-and-play like stacking bricks, with no animation graph wiring and no expert animation knowledge required.
+        </p>
+        <video controls playsinline preload="none" poster="./static/posters/runtime_aibm_so_authoring_1.5x.jpg" data-lazy-video>
+          <source data-src="https://research-staging.nvidia.com/labs/gear/motionbricks/videos/runtime_aibm_so_authoring_1.5x.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="inbetweening">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">In-betweening Comparisons</h2>
+        <p class="content has-text-justified">
+          Side-by-side against six state-of-the-art in-betweening baselines.
+        </p>
+        <video controls playsinline preload="none" poster="./static/posters/supp_inbetweening.jpg" data-lazy-video>
+          <source data-src="https://research-staging.nvidia.com/labs/gear/motionbricks/videos/supp_inbetweening.mov" type="video/quicktime">
+          <source data-src="https://research-staging.nvidia.com/labs/gear/motionbricks/videos/supp_inbetweening.mov" type="video/mp4">
+        </video>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="code-release">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3 has-text-centered">Code &amp; Data Release</h2>
+        <div class="content has-text-justified">
+          <p>
+            As an initial <strong>preview release</strong>, the code is available at <a href="https://github.com/NVlabs/GR00T-WholeBodyControl/tree/main/motionbricks">GR00T-WholeBodyControl-motionbricks</a>. It ships two components: (1) an interactive G1 demo that lets anyone play with a lightweight MotionBricks-controlled G1 out of the box, and (2) a self-contained synthetic training pipeline with additional instructions for incorporating the BONES-SEED dataset. Together, these let the community reproduce our core training loop and start training their own MotionBricks-style policies immediately.
+          </p>
+          <p>
+            A <strong>full release</strong> — a model fully embedded in gr00t-whole-body-control's robotics formulation, along with the complete training pipeline — is targeted for approximately one month out. Reproducibility experiments are already in flight; please check back for updates.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="bibtex">
+  <div class="container is-max-desktop content">
+    <h2 class="title is-3 has-text-centered">BibTeX</h2>
+    <pre><code>Coming soon...</code></pre>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content has-text-centered">
+          <p>
+            This webpage template is adapted from <a href="https://nerfies.github.io/">Nerfies</a>,
+            via <a href="https://nvlabs.github.io/GEAR-SONIC/">GEAR-SONIC</a>.
+          </p>
+          <p>
+            The website source is licensed under a
+            <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
