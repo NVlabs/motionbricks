@@ -4,8 +4,10 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Video assets are hosted on NVIDIA research CloudFront, not in this repo
+# Video and PDF assets are hosted on NVIDIA research CloudFront, not in this repo
 *.mp4
 *.mov
 *.webm
+*.pdf
 static/videos/
+static/pdfs/
