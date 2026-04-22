@@ -329,16 +329,16 @@
 
 <section class="section" id="related-projects">
   <div class="container is-max-desktop">
-    <div class="columns is-centered">
+    <div class="columns is-centered has-text-centered">
       <div class="column is-full-width">
         <h2 class="title is-3 has-text-centered">Humanoid Motion at NVIDIA</h2>
-        <p class="content has-text-justified">
-          MotionBricks is part of a larger research effort at NVIDIA to support humanoid robotics and Physical AI by developing models and tools for 3D humanoid motion. It relies on and interoperates with the projects below.
+        <p class="content section-caption">
+          MotionBricks is one pillar of NVIDIA's <strong>GR00T Whole-Body Control</strong> initiative — the motion-generation layer that feeds downstream tracking and execution. It ships alongside these sibling projects:
         </p>
 
         <div class="related-project">
           <a class="related-project-media" href="https://research.nvidia.com/labs/sil/projects/kimodo/">
-            <img src="./static/gifs/kimodo.gif" alt="Kimodo preview" loading="lazy">
+            <img src="./static/gifs/kimodo.gif?v=2" alt="Kimodo preview" loading="lazy">
           </a>
           <div class="related-project-body">
             <h4 class="title is-5"><a href="https://research.nvidia.com/labs/sil/projects/kimodo/">Kimodo</a></h4>
@@ -348,7 +348,7 @@
 
         <div class="related-project">
           <a class="related-project-media" href="https://nvlabs.github.io/GEAR-SONIC/">
-            <img src="./static/gifs/gear_sonic.gif" alt="GEAR-SONIC preview" loading="lazy">
+            <img src="./static/gifs/gear_sonic.gif?v=2" alt="GEAR-SONIC preview" loading="lazy">
           </a>
           <div class="related-project-body">
             <h4 class="title is-5"><a href="https://nvlabs.github.io/GEAR-SONIC/">GEAR-SONIC</a></h4>
@@ -358,21 +358,21 @@
 
         <div class="related-project">
           <a class="related-project-media" href="https://huggingface.co/datasets/bones-studio/seed">
-            <img src="./static/gifs/bones.gif" alt="BONES-SEED preview" loading="lazy">
+            <img src="./static/gifs/bones.gif?v=2" alt="BONES-SEED preview" loading="lazy">
           </a>
           <div class="related-project-body">
             <h4 class="title is-5"><a href="https://huggingface.co/datasets/bones-studio/seed">BONES-SEED Dataset</a></h4>
-            <p>Hundreds of hours of production-quality motion capture data on the SOMA body model; the core training corpus behind MotionBricks.</p>
+            <p>The 350k-clip motion capture corpus that MotionBricks' modular latent backbone is trained on — production-grade recordings on both the SOMA body model and the Unitree G1 humanoid.</p>
           </div>
         </div>
 
         <div class="related-project">
           <a class="related-project-media" href="https://github.com/NVIDIA/soma-retargeter">
-            <img src="./static/gifs/soma_retargeter.gif" alt="SOMA Retargeter preview" loading="lazy">
+            <img src="./static/gifs/soma_retargeter.gif?v=2" alt="SOMA Retargeter preview" loading="lazy">
           </a>
           <div class="related-project-body">
             <h4 class="title is-5"><a href="https://github.com/NVIDIA/soma-retargeter">SOMA Retargeter</a></h4>
-            <p>Newton-based retargeter that produced the G1 training data used by MotionBricks.</p>
+            <p>The Newton-based solver that bridges human motion capture to G1 kinematics. MotionBricks' G1 training stream is produced end-to-end by this retargeter, preserving contact and joint-limit behavior.</p>
           </div>
         </div>
       </div>

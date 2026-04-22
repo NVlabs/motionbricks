@@ -973,6 +973,7 @@ section[id] {
 .related-project-body {
   flex: 1 1 auto;
   min-width: 0;
+  text-align: left;
 }
 
 .related-project .title.is-5 {
