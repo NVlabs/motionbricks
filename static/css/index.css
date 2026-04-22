@@ -935,6 +935,38 @@ section[id] {
   line-height: 1.65;
 }
 
+/* ---------- Humanoid Motion at NVIDIA (related projects) ---------- */
+
+.related-project {
+  max-width: 780px;
+  margin: 0 auto 1.4rem auto;
+  padding: 1rem 1.25rem;
+  border-left: 3px solid var(--accent);
+  background: rgba(118, 185, 0, 0.04);
+  border-radius: 0 6px 6px 0;
+}
+
+.related-project .title.is-5 {
+  margin-bottom: 0.35rem !important;
+}
+
+.related-project .title.is-5 a {
+  color: var(--ink);
+  border-bottom: 1px dashed rgba(118, 185, 0, 0.45);
+}
+
+.related-project .title.is-5 a:hover {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.related-project p {
+  color: var(--muted);
+  font-size: 0.96rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
 /* ---------- Overview media (teaser inside section 1) ---------- */
 
 .overview-media {
