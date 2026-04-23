@@ -1011,7 +1011,7 @@ section[id] {
 /* ---------- Acknowledgments ---------- */
 
 .acknowledgments {
-  max-width: 780px;
+  max-width: var(--media-max);
   margin: 0 auto;
   color: var(--muted);
   font-size: 0.95rem;
