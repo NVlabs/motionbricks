@@ -1008,6 +1008,20 @@ section[id] {
   }
 }
 
+/* ---------- Acknowledgments ---------- */
+
+.acknowledgments {
+  max-width: 780px;
+  margin: 0 auto;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.75;
+}
+
+.acknowledgments p + p {
+  margin-top: 0.9rem;
+}
+
 /* ---------- Overview media (teaser inside section 1) ---------- */
 
 .overview-media {
