@@ -938,7 +938,7 @@ section[id] {
 /* ---------- Humanoid Motion at NVIDIA (related projects) ---------- */
 
 .related-project {
-  max-width: 820px;
+  max-width: var(--media-max);
   margin: 0 auto 1.4rem auto;
   padding: 1rem 1.25rem;
   border-left: 3px solid var(--accent);
