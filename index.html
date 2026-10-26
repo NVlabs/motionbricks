@@ -83,7 +83,7 @@
           </a>
         </span>
         <span class="link-block">
-          <a href="https://github.com/NVlabs/GR00T-WholeBodyControl/tree/main/motionbricks" class="external-link button is-normal is-rounded">
+          <a href="https://github.com/NVlabs/motionbricks" class="external-link button is-normal is-rounded">
             <span class="icon"><i class="fab fa-github"></i></span>
             <span>Code</span>
           </a>
@@ -310,16 +310,16 @@
   <div class="container is-max-desktop">
     <div class="columns is-centered has-text-centered">
       <div class="column is-full-width">
-        <h2 class="title is-3 has-text-centered">Code &amp; Data Release</h2>
+        <h2 class="title is-3 has-text-centered">Code Release</h2>
         <div class="content has-text-justified">
           <p>
-            MotionBricks is now a <strong>core organic component</strong> of NVIDIA's <a href="https://github.com/NVlabs/GR00T-WholeBodyControl">GR00T Whole-Body Control</a> effort, powering the motion-generation layer of the stack.
+            MotionBricks is now a <strong>core organic component</strong> of NVIDIA's <a href="https://github.com/NVlabs/GR00T-WholeBodyControl">GR00T Whole-Body Control</a> effort, powering the motion-generation layer of the stack. The <strong>full release</strong> is now public: the model is fully embedded in GR00T Whole-Body Control's robotics formulation.
           </p>
           <p>
-            As an initial <strong>preview release</strong>, the code is available at <a href="https://github.com/NVlabs/GR00T-WholeBodyControl/tree/main/motionbricks">GR00T-WholeBodyControl/motionbricks</a>. It ships two components: (1) an interactive G1 demo that lets anyone play with a lightweight MotionBricks-controlled G1 out of the box, and (2) a self-contained synthetic training pipeline with additional instructions for incorporating the BONES-SEED dataset. Together, these let the community reproduce our core training loop and start training their own MotionBricks-style policies immediately.
+            The earlier <strong>preview release</strong> also remains available at <a href="https://github.com/NVlabs/GR00T-WholeBodyControl/tree/main/motionbricks">GR00T-WholeBodyControl/motionbricks</a>. It ships an interactive G1 demo and a self-contained synthetic training pipeline, with additional instructions for incorporating the BONES-SEED dataset, so the community can reproduce our core training loop and start training their own MotionBricks-style policies.
           </p>
           <p>
-            A <strong>full release</strong> — a model fully embedded in GR00T Whole-Body Control's robotics formulation, along with the complete training pipeline — is targeted for approximately one month out. Reproducibility experiments are already in flight; please check back for updates.
+            Finally, the <strong>official MotionBricks code</strong> is available at <a href="https://github.com/NVlabs/motionbricks">NVlabs/motionbricks</a>. The release includes the <strong>MotionBricks runtime</strong> (Warp, Newton and TensorRT backends) with pretrained <strong>SOMA</strong> and <strong>Unitree G1</strong> models (ONNX bundled, SafeTensors checkpoints on Hugging Face) and a standalone ONNX exporter. It also ships interactive demos (an Inbetweener and a Scene Preview with SOMA and G1 gym scenes), and a Smart Primitive Editor and Scene Editor as one way to author reusable interactions without retraining, along with sample motions and documentation with runnable examples. We distilled the core ideas of our Unreal Engine showcase into plain Python, with a focus on code that is easy to follow.
           </p>
         </div>
       </div>
