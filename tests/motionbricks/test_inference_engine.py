@@ -6,7 +6,10 @@ import unittest
 from types import SimpleNamespace
 
 import numpy as np
-import tensorrt as trt
+try:
+    import tensorrt as trt
+except ImportError:
+    trt = None
 
 from motionbricks.inference.types import TensorMode, TensorSpec
 from motionbricks.inference.builder import TensorRTBuildOptions, _specialize_batch_dimension, create_logger
@@ -21,6 +24,7 @@ class InferenceEngineTests(unittest.TestCase):
         self.assertEqual(spec.element_count, 40)
         self.assertEqual(spec.nbytes, 160)
 
+    @unittest.skipIf(trt is None, "TensorRT is not installed")
     def test_tensorrt_messages_go_to_python_logging(self) -> None:
         warnings_and_up = create_logger("warning")
         with self.assertLogs("motionbricks.inference.tensorrt", level="DEBUG") as logs:

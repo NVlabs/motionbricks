@@ -73,7 +73,8 @@ def canonical_target(rig, model: str, poses: wp.array) -> None:
 def run(model: str) -> list[np.ndarray]:
     """Move "soma" or "unitree_g1" along the steered path. Return the pose shown at each update."""
     wp.init()
-    wp.set_device("cuda:0")
+    if wp.is_cuda_available():
+        wp.set_device("cuda:0")
     rig = load_rig(model, JOG)
     shown = []
     with rig.engine as engine, wp.ScopedStream(engine.stream):

@@ -13,12 +13,18 @@ dependencies = [
     "newton==1.6.0",
     "warp-lang>=1.17.0",
     "pyglet==2.1.13",
-    "numpy==2.4.3",
+    "numpy>=2.0.0",
     "trimesh>=4.6.8",
     "imgui-bundle==1.92.4",
     "pillow>=13.0.0",
     "usd-core==26.3",
     "scipy==1.17.1",
+    "onnxruntime-directml>=1.19.0; sys_platform == 'win32'",
+    "onnxruntime>=1.19.0; sys_platform != 'win32'",
+]
+
+[project.optional-dependencies]
+tensorrt = [
     "tensorrt-cu12==10.8.0.43",
     "tensorrt-cu12-bindings==10.8.0.43",
     "tensorrt-cu12-libs==10.8.0.43",
