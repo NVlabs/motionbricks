@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "motionbricks"
 dynamic = ["version"]
 license = "Apache-2.0 AND CC-BY-4.0"
-license-files = ["LICENSE", "licenses/**/*.txt"]
+license-files = ["LICENSE", "licenses/**/*.txt", "tools/onnx/licenses/**/*.txt"]
 requires-python = ">=3.12"
 
 dependencies = [
@@ -38,7 +38,7 @@ exclude = ["app*", "assets*"]
 
 [tool.setuptools.package-data]
 motionbricks = ["assets/**/*"]
-"tools.onnx" = ["assets/*.npz"]
+"tools.onnx" = ["assets/*.npz", "licenses/*.txt"]
 
 [tool.setuptools.dynamic]
 version = { attr = "motionbricks.__version__" }
