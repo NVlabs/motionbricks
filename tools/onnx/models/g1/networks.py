@@ -637,12 +637,12 @@ class pose_backbone_network(nn.Module):
         """Return the frames per motion token, 2 ** down_t."""
         return 2 ** self._args["down_t"]
 
-    @property
+    @cached_property
     def NUM_WITH_AUG_POSE_TOKENS(self):
         """Number of pose token values, including the extra tokens."""
         return self.get_num_codes(include_aug_tokens=True)[0]
 
-    @property
+    @cached_property
     def POSE_MASK_ID(self):
         """Token value that marks a masked pose token."""
         return self.get_num_codes(include_aug_tokens=True)[0] - 1

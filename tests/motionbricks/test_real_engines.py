@@ -1,12 +1,12 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""The real TensorRT engines generate sane motion from the bundled models.
+"""The real inference engines generate sane motion from the bundled models.
 
 Each generation's length must come from the token counts its config allows.
 
-These tests load the SOMA and G1 engines in FP32 and FP16. They need an NVIDIA GPU.
-The first run builds the engines into .trt-cache, which takes several minutes.
+These tests load the SOMA and G1 engines in FP32 and FP16, or FP32 on Metal.
+The first TensorRT run builds engines into .trt-cache, which takes several minutes.
 Set the MOTIONBRICKS_ENGINE_TESTS environment variable to 1 to run them.
 Run them after changing the ONNX models, the decode kernels or TensorRT.
 """
@@ -19,7 +19,7 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 import warp as wp
 
-from motionbricks.inference.builder import TensorRTBuildOptions
+from motionbricks.inference.options import TensorRTBuildOptions
 from motionbricks.io.bvh import load_bvh
 from motionbricks.io.csv import load_csv
 from motionbricks.io.usd import load_skeleton_from_usd
@@ -58,7 +58,7 @@ class RealEngineTests(unittest.TestCase):
     def setUpClass(cls):
         wp.init()
         cls.previous_device = wp.get_device()
-        wp.set_device("cuda:0")
+        wp.set_device("cuda:0" if wp.is_cuda_available() else "cpu")
 
     @classmethod
     def tearDownClass(cls):
@@ -119,6 +119,27 @@ class RealEngineTests(unittest.TestCase):
                     lengths = [valid_frame_count(count) for count in allowed]
                     self.assertIn(output.num_frames, lengths)
 
+    def check_single_placed_target(self, engine, clip, to_runtime, context, target, output, poses, errors):
+        """A single translated and rotated target must still produce continuous motion."""
+        placement = wp.transform(
+            wp.vec3(0.5, -0.2, 0.0),
+            wp.quat_from_axis_angle(wp.vec3(0.0, 0.0, 1.0), 0.35),
+        )
+        with wp.ScopedStream(engine.stream):
+            context_poses = _clip_window(clip, poses, 0.9, to_runtime)
+            target_poses = _clip_window(clip, poses, 1.8, wp.mul(placement, to_runtime))
+            context.update_from_poses(context_poses, stream=engine.stream)
+            target.update_from_poses(target_poses[:1], stream=engine.stream)
+            engine.generate_animation(
+                context, target, output,
+                config=MotionBricksInferenceConfig(allowed_token_counts=(16,)),
+            )
+            self.assertEqual(output.num_frames, valid_frame_count(16))
+            self.assert_walk(poses.numpy()[:output.num_frames], context_poses.numpy()[-1], target_poses.numpy()[0], errors)
+            contacts = output.foot_contacts.numpy()[:output.num_frames]
+            self.assertTrue(np.isfinite(contacts).all())
+            self.assertTrue(((contacts >= 0.0) & (contacts <= 1.0)).all())
+
     def soma_engine(self, fp16):
         """Return the SOMA engine, followed by the other arguments of check_walk."""
         skeleton = load_skeleton_from_usd(
@@ -143,7 +164,7 @@ class RealEngineTests(unittest.TestCase):
 
     def g1_engine(self, fp16):
         """Return the G1 engine, followed by the other arguments of check_walk."""
-        clip = load_csv(_REPO / f"assets/motions/unitree_g1/{_WALK}.csv", device="cuda:0")
+        clip = load_csv(_REPO / f"assets/motions/unitree_g1/{_WALK}.csv", device=wp.get_device())
         to_runtime = wp.transform_identity()
 
         def errors(a, b):
@@ -159,25 +180,39 @@ class RealEngineTests(unittest.TestCase):
         context, target, output = engine.create_input(), engine.create_input(), engine.create_output()
         return engine, clip, to_runtime, context, target, output, output.poses, errors
 
+    @staticmethod
+    def precisions():
+        return (False,) if os.environ.get("MOTIONBRICKS_ONNX_PROVIDER", "").lower() == "mps" else (False, True)
+
     def test_soma_chains_walks_between_clip_poses(self):
-        for fp16 in (False, True):
+        for fp16 in self.precisions():
             with self.subTest(fp16=fp16):
                 self.check_walk(*self.soma_engine(fp16))
 
     def test_g1_chains_walks_between_clip_poses(self):
-        for fp16 in (False, True):
+        for fp16 in self.precisions():
             with self.subTest(fp16=fp16):
                 self.check_walk(*self.g1_engine(fp16))
 
     def test_soma_generates_only_allowed_token_counts(self):
-        for fp16 in (False, True):
+        for fp16 in self.precisions():
             with self.subTest(fp16=fp16):
                 self.check_token_counts(*self.soma_engine(fp16)[:-1])
 
     def test_g1_generates_only_allowed_token_counts(self):
-        for fp16 in (False, True):
+        for fp16 in self.precisions():
             with self.subTest(fp16=fp16):
                 self.check_token_counts(*self.g1_engine(fp16)[:-1])
+
+    def test_soma_generates_toward_single_placed_target(self):
+        for fp16 in self.precisions():
+            with self.subTest(fp16=fp16):
+                self.check_single_placed_target(*self.soma_engine(fp16))
+
+    def test_g1_generates_toward_single_placed_target(self):
+        for fp16 in self.precisions():
+            with self.subTest(fp16=fp16):
+                self.check_single_placed_target(*self.g1_engine(fp16))
 
 
 if __name__ == "__main__":

@@ -92,8 +92,8 @@ class BatchedSOMA(torch.nn.Module):
             Path(__file__).resolve().parents[2] / "assets/soma_model_rig.npz",
             allow_pickle=False,
         ) as data:
-            self.capture_offsets = torch.from_numpy(data["capture_offsets"])
-            self.standard_offsets = torch.from_numpy(data["standard_offsets"])
+            self.register_buffer("capture_offsets", torch.from_numpy(data["capture_offsets"]))
+            self.register_buffer("standard_offsets", torch.from_numpy(data["standard_offsets"]))
 
     def forward(
         self,

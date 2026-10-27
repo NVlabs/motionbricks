@@ -13,7 +13,8 @@ dependencies = [
     "numpy==1.26.4",
     "onnx==1.23.2",
     "safetensors==0.8.0",
-    "torch==2.14.0+cpu",
+    "torch==2.14.0+cpu; sys_platform != 'darwin'",
+    "torch==2.14.0; sys_platform == 'darwin'",
 ]
 
 [project.scripts]
@@ -35,7 +36,7 @@ url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 
 [tool.uv.sources]
-torch = { index = "pytorch-cpu" }
+torch = [{ index = "pytorch-cpu", marker = "sys_platform != 'darwin'" }]
 
 [tool.uv]
 managed = true
