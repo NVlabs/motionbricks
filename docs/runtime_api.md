@@ -50,7 +50,7 @@ Each class or function uses its `device` argument, the device of an object it re
 
 ## Engines
 
-On NVIDIA systems, each engine builds or loads a cached TensorRT plan and orders its work on `engine.stream`. On Apple Silicon, engines use ONNX Runtime and CPU Warp buffers; `engine.stream` is `None` and inference is synchronous. The experimental Core ML provider can delegate unsupported operators to the CPU. Use an engine as a context manager, or call `close()` when you are done.
+On NVIDIA systems, each engine builds or loads a cached TensorRT plan and orders its work on `engine.stream`. On Apple Silicon, engines use CPU Warp buffers and either ONNX Runtime or the optional PyTorch MPS backend for Metal GPU inference. `engine.stream` is `None` and inference is synchronous; model inputs and outputs cross the CPU/GPU boundary. The experimental Core ML provider can delegate unsupported operators to the CPU. See [Apple GPU inference](../README.md#apple-gpu-inference) for setup and limitations. Use an engine as a context manager, or call `close()` when you are done.
 
 ```python
 from motionbricks.model.soma.contract import SOMA_N1_FP32_ONNX_PATH

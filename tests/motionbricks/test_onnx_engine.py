@@ -48,3 +48,21 @@ class OnnxEngineTests(unittest.TestCase):
         with wp.ScopedDevice('cpu'), patch.dict('os.environ', {'MOTIONBRICKS_ONNX_PROVIDER': 'coreml'}), patch.object(onnx_engine.ort, 'get_available_providers', return_value=['CPUExecutionProvider']):
             with self.assertRaisesRegex(RuntimeError, 'without the Core ML'):
                 onnx_engine.InferenceEngine('unused.onnx')
+
+    def test_cpu_thread_limit_and_validation(self):
+        wp.init()
+        with wp.ScopedDevice('cpu'), patch.dict('os.environ', {
+            'MOTIONBRICKS_ONNX_PROVIDER': 'cpu', 'MOTIONBRICKS_ONNX_THREADS': '0',
+        }):
+            with self.assertRaisesRegex(ValueError, 'positive integer'):
+                onnx_engine.InferenceEngine('unused.onnx')
+
+        with wp.ScopedDevice('cpu'), patch.dict('os.environ', {
+            'MOTIONBRICKS_ONNX_PROVIDER': 'cpu', 'MOTIONBRICKS_ONNX_THREADS': '3',
+            'MOTIONBRICKS_COREML_COMPUTE_UNITS': 'invalid',
+        }), patch.object(onnx_engine.ort, 'InferenceSession') as factory:
+            factory.return_value.get_inputs.return_value = []
+            factory.return_value.get_outputs.return_value = []
+            engine = onnx_engine.InferenceEngine('unused.onnx')
+            self.assertEqual(factory.call_args.kwargs['sess_options'].intra_op_num_threads, 3)
+            engine.close()

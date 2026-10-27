@@ -21,7 +21,7 @@ from motionbricks.inference.options import TensorRTBuildOptions
 if sys.platform != "darwin":
     import tensorrt as trt
     from motionbricks.inference.builder import create_logger
-    from motionbricks.inference.progress import TensorRTBuildProgress, TensorRTBuildProgressMonitor
+    from motionbricks.inference.progress import TensorRTBuildProgressMonitor
 else:
     class TensorRTBuildProgressMonitor:
         def snapshot(self):
@@ -54,9 +54,9 @@ _BUILD_PROGRESS_BAR_WIDTH = 16
 _BUILD_PROGRESS_UPDATE_INTERVAL = 0.1
 
 
-def _format_engine_loading_text(progress: TensorRTBuildProgress) -> str:
+def _format_engine_loading_text(progress: Any | None) -> str:
     if progress is None:
-        return "Loading ONNX model..."
+        return "Loading motion model..."
     if progress.phase_name is None:
         return "Checking TensorRT plan cache..."
 

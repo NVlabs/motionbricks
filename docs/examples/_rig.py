@@ -17,10 +17,11 @@ from motionbricks.io.bvh import load_bvh
 from motionbricks.io.csv import load_csv
 from motionbricks.io.usd import load_skeleton_from_usd
 from motionbricks.io.utils import SOMA_SKELETON_PRIM_PATH, get_asset_file
+from motionbricks.inference.options import TensorRTBuildOptions
 from motionbricks.model.contract import MODEL_POSES_PER_TOKEN, MODEL_SAMPLE_RATE, ModelRig
-from motionbricks.model.soma.contract import SOMA_N1_FP32_ONNX_PATH
+from motionbricks.model.soma.contract import SOMA_N1_FP16_ONNX_PATH, SOMA_N1_FP32_ONNX_PATH
 from motionbricks.model.soma.engine import MotionBricksSOMAEngine
-from motionbricks.model.unitree_g1.contract import UNITREE_G1_N1_FP32_ONNX_PATH
+from motionbricks.model.unitree_g1.contract import UNITREE_G1_N1_FP16_ONNX_PATH, UNITREE_G1_N1_FP32_ONNX_PATH
 from motionbricks.model.unitree_g1.engine import MotionBricksUnitreeG1Engine
 from motionbricks.utils.space_conversion_utils import FacingDirectionType, SpaceConverter
 
@@ -48,7 +49,7 @@ class Rig:
     model_to_runtime: wp.transform
 
 
-def load_rig(model: str, clip_name: str = WALK) -> Rig:
+def load_rig(model: str, clip_name: str = WALK, *, fp16: bool = False) -> Rig:
     """Load a clip of the bundled locomotion set and create the engine for "soma" or "unitree_g1"."""
     if ModelRig(model) is ModelRig.SOMA:
         skeleton = load_skeleton_from_usd(
@@ -57,11 +58,17 @@ def load_rig(model: str, clip_name: str = WALK) -> Rig:
         clip = load_bvh(str(ASSETS / "soma" / f"{clip_name}.bvh"), skeleton)
         # SOMA model space and BVH clips are Y up. World space is Z up.
         to_runtime = SpaceConverter(FacingDirectionType.MUJOCO).convert_transform(wp.transform_identity())
-        engine = MotionBricksSOMAEngine(SOMA_N1_FP32_ONNX_PATH, model_to_runtime=to_runtime)
+        engine = MotionBricksSOMAEngine(
+            SOMA_N1_FP16_ONNX_PATH if fp16 else SOMA_N1_FP32_ONNX_PATH,
+            model_to_runtime=to_runtime, build_options=TensorRTBuildOptions(enable_fp16=fp16),
+        )
         return Rig(engine, clip, skeleton, skeleton.reference_local_transforms, to_runtime)
     clip = load_csv(ASSETS / "unitree_g1" / f"{clip_name}.csv", device=wp.get_device())
     # G1 model space and CSV clips are already Z up.
-    engine = MotionBricksUnitreeG1Engine(UNITREE_G1_N1_FP32_ONNX_PATH)
+    engine = MotionBricksUnitreeG1Engine(
+        UNITREE_G1_N1_FP16_ONNX_PATH if fp16 else UNITREE_G1_N1_FP32_ONNX_PATH,
+        build_options=TensorRTBuildOptions(enable_fp16=fp16),
+    )
     reference = wp.zeros(36, dtype=wp.float32)
     clip.sample(0.0, reference)
     return Rig(engine, clip, None, reference, wp.transform_identity())

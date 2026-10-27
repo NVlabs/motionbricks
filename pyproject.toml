@@ -25,13 +25,20 @@ dependencies = [
     "onnxruntime>=1.22; sys_platform == 'darwin' and platform_machine == 'arm64'",
 ]
 
+[project.optional-dependencies]
+metal = [
+    "torch==2.14.0; sys_platform == 'darwin' and platform_machine == 'arm64'",
+    "safetensors==0.8.0; sys_platform == 'darwin' and platform_machine == 'arm64'",
+]
+
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["motionbricks*"]
+include = ["motionbricks*", "tools.onnx", "tools.onnx.models*"]
 exclude = ["app*", "assets*"]
 
 [tool.setuptools.package-data]
 motionbricks = ["assets/**/*"]
+"tools.onnx" = ["assets/*.npz"]
 
 [tool.setuptools.dynamic]
 version = { attr = "motionbricks.__version__" }

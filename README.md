@@ -13,7 +13,7 @@ MotionBricks is a modular latent generative model that animates characters and r
 This repository provides pretrained MotionBricks models, based on the [SIGGRAPH 2026 paper](https://arxiv.org/abs/2604.24833), and everything you need to put them to work:
 
 - **Pretrained models** for the [SOMA body model](https://github.com/NVlabs/SOMA-X) and the Unitree G1 robot. They ship as ONNX files, with the pretrained [checkpoints](#checkpoints) on Hugging Face.
-- **A Python runtime**, built on [Warp](https://github.com/NVIDIA/warp), [Newton](https://github.com/newton-physics/newton), and [TensorRT](https://github.com/NVIDIA/TensorRT) or ONNX Runtime with Core ML, that chains generations into continuous motion.
+- **A Python runtime**, built on [Warp](https://github.com/NVIDIA/warp) and [Newton](https://github.com/newton-physics/newton), that chains generations into continuous motion using TensorRT, ONNX Runtime, or PyTorch MPS for inference.
 - **Two demos**: an [Inbetweener](#inbetweener) that generates motion between poses you place, and a [Scene Preview](#scene-preview) where a character walks, runs, vaults, ducks, and sits its way through a scene.
 - **Two editors** to author your own [Smart Primitives](#editors) and [scenes](#editors).
 
@@ -25,7 +25,7 @@ The demos show one way to drive the model. Your application decides where the ta
 
 ## Setup
 
-On Windows and Linux, inference uses TensorRT and requires an NVIDIA GPU. On Apple Silicon macOS, inference uses ONNX Runtime on the CPU. An experimental Core ML provider is available. Warp runs animation kernels on the CPU on macOS, and the demos use the Newton OpenGL viewer.
+On Windows and Linux, inference uses TensorRT and requires an NVIDIA GPU. On Apple Silicon macOS, inference runs on the CPU by default. Once the optional Metal dependencies and checkpoints are installed, the FP32 models use the Apple GPU automatically, as described below. Warp runs animation kernels on the CPU on macOS, and the demos use the Newton OpenGL viewer.
 
 Install [Git LFS](https://git-lfs.com/) and [uv](https://docs.astral.sh/uv/getting-started/installation/). Then clone this repository and run these commands from its root:
 
@@ -37,6 +37,22 @@ uv sync
 On NVIDIA systems, the first launch of each model and precision builds a TensorRT plan and caches it in `.trt-cache/`. On Apple Silicon, the experimental Core ML model load may take several minutes. Core ML runs supported portions on the CPU or GPU, and ONNX Runtime executes unsupported operations on the CPU. GPU use and real-time performance depend on the model and system.
 
 Set `MOTIONBRICKS_ONNX_PROVIDER=coreml` to try Core ML. This path is experimental: Core ML or its Metal backend may fail on the bundled model. Core ML uses `CPUAndGPU` by default. Set `MOTIONBRICKS_COREML_COMPUTE_UNITS` to `ALL`, `CPUOnly`, or `CPUAndNeuralEngine` to choose other Core ML compute units. The app renderer uses OpenGL, not Metal, and Warp does not currently offer a Metal backend. Each app section below gives its command.
+
+### Apple GPU inference
+
+Install the optional Metal dependencies and download the released checkpoints using the [Hugging Face CLI](https://huggingface.co/docs/huggingface_hub/en/guides/cli):
+
+```sh
+uv sync --extra metal
+hf download nvidia/MotionBricks --local-dir checkpoints/MotionBricks --include "g1/*" "soma/*"
+uv run --extra metal python -m app.inbetweener_demo
+```
+
+The app selects Metal for bundled FP32 models when the GPU dependencies and complete checkpoints are available; otherwise it uses the CPU. Set `MOTIONBRICKS_ONNX_PROVIDER=cpu` or `mps` to choose explicitly. The GPU backend verifies the checkpoint checksums before loading. To use a different checkpoint location, set `MOTIONBRICKS_CHECKPOINT_DIR` to the downloaded `MotionBricks` folder. It supports the bundled FP32 SOMA and Unitree G1 models with batch size one; `--model-precision fp16` is not supported. The first inference can take longer while Metal compiles kernels. Model inputs and outputs move between CPU Warp buffers and the GPU, so performance depends on the machine and workload. The checkpoints are subject to the [NVIDIA Open Model Agreement](https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-agreement/). See [Apple Silicon inference](docs/apple_silicon.md) for validation and current limits.
+
+Include `--extra metal` in every `uv run` command that should use the GPU, including the other app commands below. Running `uv run` without the extra may remove the optional dependencies from the project environment.
+
+The CPU ONNX provider uses up to four threads by default on Mac. Set `MOTIONBRICKS_ONNX_THREADS` to a positive integer to tune it. Run `uv run --extra metal python tools/benchmark_inference.py` with the provider environment variable set to `cpu` or `mps` to compare complete generation times on your machine.
 
 ## How MotionBricks works
 
@@ -164,7 +180,7 @@ These editors show one way to build dynamic sequences and interactions. Your app
 
 MotionBricks checkpoints are available for the SOMA body model and the Unitree G1 robot. Their weights use the SafeTensors format.
 
-> Note: the apps use the ONNX models bundled in [motionbricks/assets/onnx](motionbricks/assets/onnx), so you do not need to download a checkpoint to run them. Download one to export your own ONNX models or to build another runtime. This repository includes the [ONNX exporter](#export-onnx-models).
+> Note: the default inference backends use the ONNX models bundled in [motionbricks/assets/onnx](motionbricks/assets/onnx), so they do not require checkpoints. Download checkpoints for the optional Metal backend, to export your own ONNX models, or to build another runtime. This repository includes the [ONNX exporter](#export-onnx-models).
 
 | Model | Skeleton | Training Data | FPS | Hugging Face | License |
 |:-------|:-------------|:------:|:------:|:-------------:|:-------------:|

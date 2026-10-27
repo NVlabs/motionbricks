@@ -72,14 +72,13 @@ class motion_inference(t.nn.Module):
             local_poses.dtype,
         )
         num_frames_per_token = self._pose_model.backbone_net.get_num_frames_per_token()
-        if not (
+        if not getattr(self, "_warned_missing_frames", False) and not (
             t.all(has_global_root_values[:, :num_frames_per_token])
             and t.all(has_local_root_values[:, :num_frames_per_token])
             and t.all(has_local_poses[:, :num_frames_per_token])
         ):
-            if not getattr(self, "_warned_missing_frames", False):
-                logger.warning("Results are best when all of the first four frames are provided.")
-                self._warned_missing_frames = True
+            logger.warning("Results are best when all of the first four frames are provided.")
+            self._warned_missing_frames = True
         if type(num_tokens) == int:
             num_tokens = t.full([batch_size, 1], num_tokens, dtype=t.int).to(device)
         elif num_tokens is None:

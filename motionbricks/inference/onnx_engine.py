@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""ONNX Runtime inference for Apple Silicon, with an experimental Core ML provider."""
+"""Apple Silicon inference with ONNX Runtime or PyTorch Metal."""
 
 from pathlib import Path
 from types import MappingProxyType
@@ -26,7 +26,7 @@ _TYPES = {
 
 
 class InferenceEngine:
-    """Run a model using CPU Warp buffers and the selected ONNX Runtime provider."""
+    """Run a model using CPU Warp buffers and the selected Apple inference backend."""
 
     default_enable_tf32 = True
 
@@ -34,18 +34,29 @@ class InferenceEngine:
         wp.init()
         self._device = wp.get_device()
         if not self._device.is_cpu or stream is not None:
-            raise ValueError('ONNX Runtime requires Warp CPU buffers and no CUDA stream.')
+            raise ValueError('Apple inference requires Warp CPU buffers and no CUDA stream.')
         self._closed = False
         self._buffers = {}
         self._session = None
-        provider = os.environ.get('MOTIONBRICKS_ONNX_PROVIDER', 'cpu').lower()
-        if provider not in {'coreml', 'cpu'}:
+        self._mps_model = None
+        self._mps_input_names = ()
+        self._mps_output_names = ()
+        provider = os.environ.get('MOTIONBRICKS_ONNX_PROVIDER', 'auto').lower()
+        if provider not in {'auto', 'coreml', 'cpu', 'mps'}:
             raise ValueError(f'Unsupported ONNX provider: {provider!r}')
-        units = os.environ.get('MOTIONBRICKS_COREML_COMPUTE_UNITS', 'CPUAndGPU')
-        if units not in {'CPUOnly', 'CPUAndGPU', 'CPUAndNeuralEngine', 'ALL'}:
-            raise ValueError(f'Unsupported Core ML compute units: {units!r}')
+        if provider == 'auto':
+            from .mps import is_available_for_model
+
+            provider = 'mps' if expected_tensor_specs and is_available_for_model(onnx_path) else 'cpu'
+        self._provider = provider
+        if provider == 'mps':
+            self._initialize_mps(onnx_path, build_options, expected_tensor_specs)
+            return
         providers = ['CPUExecutionProvider']
         if provider == 'coreml':
+            units = os.environ.get('MOTIONBRICKS_COREML_COMPUTE_UNITS', 'CPUAndGPU')
+            if units not in {'CPUOnly', 'CPUAndGPU', 'CPUAndNeuralEngine', 'ALL'}:
+                raise ValueError(f'Unsupported Core ML compute units: {units!r}')
             if 'CoreMLExecutionProvider' not in ort.get_available_providers():
                 raise RuntimeError('ONNX Runtime was installed without the Core ML execution provider.')
             providers.insert(0, ('CoreMLExecutionProvider', {
@@ -55,6 +66,19 @@ class InferenceEngine:
         else:
             logger.info('Loading ONNX Runtime CPU execution provider.')
         options = ort.SessionOptions()
+        # The default ONNX Runtime pool can oversubscribe Apple Silicon badly
+        # when the viewer and other processes are active. Keep the default
+        # modest while allowing applications to tune it for their machine.
+        thread_count = os.environ.get('MOTIONBRICKS_ONNX_THREADS')
+        if thread_count is None:
+            options.intra_op_num_threads = min(4, os.cpu_count() or 1)
+        else:
+            try:
+                options.intra_op_num_threads = int(thread_count)
+                if options.intra_op_num_threads < 1:
+                    raise ValueError
+            except ValueError as exc:
+                raise ValueError('MOTIONBRICKS_ONNX_THREADS must be a positive integer.') from exc
         options.add_free_dimension_override_by_name('batch_size', build_options.batch_size if build_options else 1)
         self._session = ort.InferenceSession(str(Path(onnx_path)), sess_options=options, providers=providers)
         if provider == 'coreml' and 'CoreMLExecutionProvider' not in self._session.get_providers():
@@ -78,6 +102,30 @@ class InferenceEngine:
                 specs[node.name] = spec
                 self._buffers[node.name] = wp.zeros(shape, dtype=wp.dtype_from_numpy(dtype), device=self.device)
         self._tensor_specs = MappingProxyType(specs)
+
+    def _initialize_mps(self, onnx_path, build_options, expected_tensor_specs):
+        from .mps import load_model
+
+        if build_options is not None and build_options.batch_size != 1:
+            raise ValueError('Metal inference currently requires a batch size of one.')
+        if not expected_tensor_specs:
+            raise ValueError('Metal inference requires the model tensor contract.')
+        self._mps_model, self._mps_input_names, self._mps_output_names = load_model(onnx_path)
+        inputs = {spec.name for spec in expected_tensor_specs if spec.mode == TensorMode.INPUT}
+        outputs = {spec.name for spec in expected_tensor_specs if spec.mode == TensorMode.OUTPUT}
+        if inputs != set(self._mps_input_names) or outputs != set(self._mps_output_names):
+            self._mps_model = None
+            raise TensorContractError('Metal model input and output names do not match the tensor contract.')
+        self._tensor_specs = MappingProxyType({spec.name: spec for spec in expected_tensor_specs})
+        self._buffers = {
+            spec.name: wp.zeros(spec.shape, dtype=wp.dtype_from_numpy(spec.dtype), device=self.device)
+            for spec in expected_tensor_specs
+        }
+
+    @property
+    def provider(self):
+        """Selected provider: ``cpu``, ``coreml``, or ``mps``."""
+        return self._provider
 
     @property
     def device(self):
@@ -105,7 +153,13 @@ class InferenceEngine:
                   if spec.mode == TensorMode.INPUT}
         outputs = [name for name, spec in self._tensor_specs.items() if spec.mode == TensorMode.OUTPUT]
         try:
-            values = self._session.run(outputs, inputs)
+            if self._mps_model is not None:
+                from .mps import run_model
+
+                results = run_model(self._mps_model, self._mps_input_names, self._mps_output_names, inputs)
+                values = [results[name] for name in outputs]
+            else:
+                values = self._session.run(outputs, inputs)
             for name, value in zip(outputs, values, strict=True):
                 spec = self._tensor_specs[name]
                 if value.shape != spec.shape or value.dtype != spec.dtype:
@@ -116,7 +170,8 @@ class InferenceEngine:
         except TensorContractError:
             raise
         except Exception as exc:
-            raise EngineExecutionError(f'ONNX Runtime inference failed: {exc}') from exc
+            backend = 'Metal' if self._provider == 'mps' else 'ONNX Runtime'
+            raise EngineExecutionError(f'{backend} inference failed: {exc}') from exc
 
     def synchronize(self):
         self._ensure_open()
@@ -126,6 +181,7 @@ class InferenceEngine:
         if not self._closed:
             self._buffers.clear()
             self._session = None
+            self._mps_model = None
             self._closed = True
 
     def _ensure_open(self):
