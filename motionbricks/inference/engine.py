@@ -393,7 +393,20 @@ class InferenceEngine:
 
         sess_opts = ort.SessionOptions()
         sess_opts.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
-        self._session = ort.InferenceSession(str(self._onnx_path), sess_options=sess_opts, providers=providers)
+        try:
+            self._session = ort.InferenceSession(str(self._onnx_path), sess_options=sess_opts, providers=providers)
+        except Exception as exc:
+            if self._session_is_dml and self._requested_backend == "auto":
+                logger.info(
+                    "DirectML initialization failed (%s); falling back to CPUExecutionProvider.",
+                    exc,
+                )
+                self._session_is_dml = False
+                self._session = ort.InferenceSession(
+                    str(self._onnx_path), sess_options=sess_opts, providers=["CPUExecutionProvider"]
+                )
+            else:
+                raise
 
         specs: list[TensorSpec] = []
         manifest_found = False

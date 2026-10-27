@@ -187,6 +187,28 @@ class ONNXRuntimeEngineTests(unittest.TestCase):
         finally:
             builder.trt = orig_trt
 
+    def test_auto_backend_retries_cpu_when_directml_init_fails(self) -> None:
+        import onnxruntime as ort
+        from unittest.mock import patch
+
+        orig_session = ort.InferenceSession
+        call_count = 0
+
+        def mock_session(*args, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            providers = kwargs.get("providers", [])
+            if any("DmlExecutionProvider" in str(p) for p in providers):
+                raise RuntimeError("DirectML device creation failed simulated error")
+            return orig_session(*args, **kwargs)
+
+        with patch("onnxruntime.InferenceSession", side_effect=mock_session):
+            engine = InferenceEngine(SOMA_N1_FP32_ONNX_PATH, backend="auto")
+            self.addCleanup(engine.close)
+            self.assertFalse(engine._session_is_dml)
+            if "DmlExecutionProvider" in ort.get_available_providers():
+                self.assertEqual(call_count, 2)
+
 
 if __name__ == "__main__":
     unittest.main()
