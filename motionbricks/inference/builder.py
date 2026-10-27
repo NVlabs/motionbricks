@@ -104,6 +104,8 @@ def load_or_build_serialized_engine(
             progress.
     """
 
+    require_supported_tensorrt()
+
     model_path = Path(onnx_path).expanduser().resolve()
     if not model_path.is_file():
         raise FileNotFoundError(f"Could not find ONNX file: {model_path}.")
@@ -169,8 +171,7 @@ def build_serialized_engine(
             progress.
     """
 
-    if trt is None:
-        raise EngineBuildError("TensorRT is not installed.")
+    require_supported_tensorrt()
 
     try:
         builder = trt.Builder(logger)

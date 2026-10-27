@@ -12,6 +12,8 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Any
 
+import numpy as np
+
 try:
     import tensorrt as trt
 except ImportError:
@@ -85,6 +87,42 @@ def _safe_synchronize_stream(stream: Any = None) -> Any:
 
 wp.synchronize_stream = _safe_synchronize_stream
 
+_SUPPORTED_BACKENDS = ("auto", "tensorrt", "directml", "cpu")
+
+_ORT_TYPE_TO_NP_DTYPE: dict[str, np.dtype] = {
+    "tensor(float)": np.dtype(np.float32),
+    "tensor(float16)": np.dtype(np.float16),
+    "tensor(double)": np.dtype(np.float64),
+    "tensor(int8)": np.dtype(np.int8),
+    "tensor(int16)": np.dtype(np.int16),
+    "tensor(int32)": np.dtype(np.int32),
+    "tensor(int64)": np.dtype(np.int64),
+    "tensor(uint8)": np.dtype(np.uint8),
+    "tensor(uint16)": np.dtype(np.uint16),
+    "tensor(uint32)": np.dtype(np.uint32),
+    "tensor(uint64)": np.dtype(np.uint64),
+    "tensor(bool)": np.dtype(np.bool_),
+}
+
+
+def _resolve_ort_shape(node: Any, batch_size: int) -> tuple[int, ...]:
+    shape = list(node.shape)
+    if len(shape) > 0 and (shape[0] == "batch_size" or not isinstance(shape[0], int) or shape[0] <= 0):
+        shape[0] = batch_size
+    for idx, d in enumerate(shape):
+        if not isinstance(d, int) or d <= 0:
+            raise EngineBuildError(
+                f"Tensor {node.name!r} has dynamic dimensions other than batch size: {node.shape}."
+                " Only the leading batch dimension may be dynamic."
+            )
+    return tuple(shape)
+
+
+def _resolve_ort_dtype(node_type: str) -> np.dtype:
+    if node_type in _ORT_TYPE_TO_NP_DTYPE:
+        return _ORT_TYPE_TO_NP_DTYPE[node_type]
+    raise EngineBuildError(f"Unsupported ONNX Runtime tensor type {node_type!r}.")
+
 
 class InferenceEngine:
     """Run an ONNX model with reusable device buffers.
@@ -126,7 +164,13 @@ class InferenceEngine:
 
         self._closed = False
         self._onnx_path = Path(onnx_path)
-        self._backend = backend.lower()
+        backend_lower = backend.lower()
+        if backend_lower not in _SUPPORTED_BACKENDS:
+            raise ValueError(
+                f"Unsupported backend {backend!r}. Expected one of {_SUPPORTED_BACKENDS}."
+            )
+        self._requested_backend = backend_lower
+        self._backend = backend_lower
         self._cuda_graph: Any | None = None
         self._buffers: dict[str, Any] = {}
         self._tensor_specs: Mapping[str, TensorSpec] = MappingProxyType({})
@@ -136,16 +180,32 @@ class InferenceEngine:
         self._output_names: list[str] = []
 
         device = wp.get_device()
-        use_tensorrt = False
-        if self._backend == "auto":
-            if device.is_cuda and trt is not None:
-                use_tensorrt = True
-        elif self._backend == "tensorrt":
-            use_tensorrt = True
 
         options = build_options or TensorRTBuildOptions()
         if options.enable_tf32 is None:
             options = replace(options, enable_tf32=self.default_enable_tf32)
+
+        if type(self)._initialize is not InferenceEngine._initialize:
+            self._stream = stream or (wp.Stream() if device.is_cuda else CPUStream(device))
+            self._logger = create_logger(logger_severity) if (device.is_cuda and trt is not None) else None
+            self._runtime = None
+            self._engine = None
+            self._context = None
+            self._initialize(
+                options,
+                cache_dir=cache_dir,
+                force_rebuild=force_rebuild,
+                progress_monitor=build_progress_monitor,
+            )
+            self._backend = "tensorrt"
+            return
+
+        use_tensorrt = False
+        if backend_lower == "auto":
+            if device.is_cuda and trt is not None:
+                use_tensorrt = True
+        elif backend_lower == "tensorrt":
+            use_tensorrt = True
 
         if use_tensorrt:
             try:
@@ -159,10 +219,10 @@ class InferenceEngine:
                         f"{device.alias}."
                     )
                 self._logger = create_logger(logger_severity)
-                self._runtime: Any | None = None
-                self._engine: Any | None = None
-                self._context: Any | None = None
-                self._initialize_tensorrt(
+                self._runtime = None
+                self._engine = None
+                self._context = None
+                self._initialize(
                     options,
                     cache_dir=cache_dir,
                     force_rebuild=force_rebuild,
@@ -171,7 +231,7 @@ class InferenceEngine:
                 self._backend = "tensorrt"
                 return
             except Exception as exc:
-                if self._backend == "tensorrt":
+                if backend_lower == "tensorrt":
                     self._discard_resources(synchronize=False)
                     self._closed = True
                     raise
@@ -249,9 +309,12 @@ class InferenceEngine:
                     "DirectML execution encountered an unsupported op (%s); falling back to CPUExecutionProvider.",
                     exc,
                 )
-                self._session = ort.InferenceSession(str(self._onnx_path), providers=["CPUExecutionProvider"])
-                self._session_is_dml = False
-                outputs = self._session.run(self._output_names, inputs)
+                try:
+                    self._session = ort.InferenceSession(str(self._onnx_path), providers=["CPUExecutionProvider"])
+                    self._session_is_dml = False
+                    outputs = self._session.run(self._output_names, inputs)
+                except Exception as cpu_exc:
+                    raise EngineExecutionError(f"Fallback to CPUExecutionProvider failed: {cpu_exc}") from cpu_exc
             else:
                 raise EngineExecutionError(f"ONNX Runtime inference failed: {exc}") from exc
 
@@ -304,9 +367,33 @@ class InferenceEngine:
         self._closed = True
 
     def _initialize_onnxruntime(self, options: TensorRTBuildOptions) -> None:
-        import numpy as np
         import onnxruntime as ort
         from motionbricks.model.contract import load_model_manifest
+
+        if options.batch_size != 1:
+            raise ValueError(
+                f"ONNX Runtime backend requires batch_size=1, got {options.batch_size}."
+            )
+
+        available = ort.get_available_providers()
+        providers: list[Any] = []
+        self._session_is_dml = False
+        if self._requested_backend == "directml":
+            if "DmlExecutionProvider" not in available:
+                raise RuntimeError(
+                    "DirectML execution provider ('DmlExecutionProvider') is not available in ONNX Runtime."
+                )
+            providers.append(("DmlExecutionProvider", {"device_id": 0}))
+            self._session_is_dml = True
+        elif self._requested_backend == "auto":
+            if "DmlExecutionProvider" in available:
+                providers.append(("DmlExecutionProvider", {"device_id": 0}))
+                self._session_is_dml = True
+        providers.append("CPUExecutionProvider")
+
+        sess_opts = ort.SessionOptions()
+        sess_opts.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+        self._session = ort.InferenceSession(str(self._onnx_path), sess_options=sess_opts, providers=providers)
 
         specs: list[TensorSpec] = []
         manifest_found = False
@@ -320,33 +407,15 @@ class InferenceEngine:
             except Exception:
                 continue
 
-        available = ort.get_available_providers()
-        providers = []
-        self._session_is_dml = False
-        if self._backend == "directml" and "DmlExecutionProvider" in available:
-            providers.append(("DmlExecutionProvider", {"device_id": 0}))
-            self._session_is_dml = True
-        providers.append("CPUExecutionProvider")
-
-        sess_opts = ort.SessionOptions()
-        sess_opts.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
-        self._session = ort.InferenceSession(str(self._onnx_path), sess_options=sess_opts, providers=providers)
-
         if not manifest_found:
             for inp in self._session.get_inputs():
-                shape = tuple(options.batch_size if (d == "batch_size" or not isinstance(d, int) or d <= 0) else d for d in inp.shape)
-                dtype = np.dtype(np.float32 if "float" in inp.type else (np.int32 if "int32" in inp.type else np.float16))
+                shape = _resolve_ort_shape(inp, options.batch_size)
+                dtype = _resolve_ort_dtype(inp.type)
                 specs.append(TensorSpec(inp.name, TensorMode.INPUT, shape, dtype))
             for out in self._session.get_outputs():
-                shape = tuple(options.batch_size if (d == "batch_size" or not isinstance(d, int) or d <= 0) else d for d in out.shape)
-                dtype = np.dtype(np.float32 if "float" in out.type else (np.int32 if "int32" in out.type else np.float16))
+                shape = _resolve_ort_shape(out, options.batch_size)
+                dtype = _resolve_ort_dtype(out.type)
                 specs.append(TensorSpec(out.name, TensorMode.OUTPUT, shape, dtype))
-
-        if options.batch_size != 1:
-            specs = [
-                TensorSpec(s.name, s.mode, (options.batch_size,) + s.shape[1:], s.dtype)
-                for s in specs
-            ]
 
         self._tensor_specs = MappingProxyType({spec.name: spec for spec in specs})
         self._input_names = [spec.name for spec in specs if spec.mode == TensorMode.INPUT]
@@ -358,7 +427,7 @@ class InferenceEngine:
             buffers[spec.name] = wp.zeros(spec.shape, dtype=warp_dtype, device=self.device)
         self._buffers = buffers
 
-    def _initialize_tensorrt(
+    def _initialize(
         self,
         build_options: TensorRTBuildOptions,
         *,
@@ -400,6 +469,8 @@ class InferenceEngine:
                 ) from rebuild_exc
 
         self._allocate_and_bind_buffers()
+
+    _initialize_tensorrt = _initialize
 
     def _deserialize(self, serialized_engine: bytes) -> None:
         if not serialized_engine:

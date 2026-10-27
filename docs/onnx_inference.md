@@ -28,7 +28,7 @@ Floating point inputs and outputs use FP32 in both precisions. The masks use INT
 
 All inputs to one generation must use the same positive `N`. Their other dimensions are fixed. Each request has its own poses, masks, and allowed token counts. Requests are processed independently.
 
-ONNX Runtime is not a MotionBricks dependency. Add it when you run your script, for example with `uv run --with onnxruntime python my_batch.py`.
+ONNX Runtime is included as a default MotionBricks dependency (with DirectML on Windows). It runs out of the box with `uv run python my_batch.py`.
 
 With ONNX Runtime, prepare each request with a batch size of one. Then concatenate the requests along axis 0:
 
