@@ -40,11 +40,11 @@ Set `MOTIONBRICKS_ONNX_PROVIDER=coreml` to try Core ML. This path is experimenta
 
 ### Apple GPU inference
 
-Install the optional Metal dependencies and download the released checkpoints using the [Hugging Face CLI](https://huggingface.co/docs/huggingface_hub/en/guides/cli):
+Install the optional Metal dependencies and download the released checkpoints using the [Hugging Face CLI](https://huggingface.co/docs/huggingface_hub/en/guides/cli). `uvx` runs the CLI without a separate installation:
 
 ```sh
 uv sync --extra metal
-hf download nvidia/MotionBricks --local-dir checkpoints/MotionBricks --include "g1/*" "soma/*"
+uvx hf download nvidia/MotionBricks --local-dir checkpoints/MotionBricks --include "g1/*" --include "soma/*"
 uv run --extra metal python -m app.inbetweener_demo
 ```
 
@@ -194,7 +194,7 @@ The [SOMA model card](docs/soma_model.md) and the [Unitree G1 model card](docs/u
 The ONNX models in this repository were exported from these checkpoints with the standalone exporter in [tools/onnx](tools/onnx/README.md). To export them yourself, install the [Hugging Face CLI](https://huggingface.co/docs/huggingface_hub/en/guides/cli), then download the checkpoint folders and run the command for your model from the repository root:
 
 ```sh
-hf download nvidia/MotionBricks --local-dir checkpoints/MotionBricks
+uvx hf download nvidia/MotionBricks --local-dir checkpoints/MotionBricks
 
 # SOMA
 uv run --locked --project tools/onnx motionbricks-onnx --model soma --checkpoints checkpoints/MotionBricks/soma

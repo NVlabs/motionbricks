@@ -19,7 +19,7 @@ Run these commands from the root of this repository. Keep the downloaded folder 
 intact. uv installs the exporter and its dependencies automatically on first use.
 
 ```sh
-hf download nvidia/MotionBricks --local-dir checkpoints/MotionBricks
+uvx hf download nvidia/MotionBricks --local-dir checkpoints/MotionBricks
 
 # SOMA
 uv run --locked --project tools/onnx motionbricks-onnx --model soma --checkpoints checkpoints/MotionBricks/soma
