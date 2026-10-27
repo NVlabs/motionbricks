@@ -49,6 +49,15 @@ class OnnxEngineTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, 'without the Core ML'):
                 onnx_engine.InferenceEngine('unused.onnx')
 
+    def test_dynamic_nonbatch_dimension_requires_a_contract(self):
+        wp.init()
+        node = SimpleNamespace(name='input', shape=['batch', 'width'], type='tensor(float)')
+        session = SimpleNamespace(get_inputs=lambda: [node], get_outputs=lambda: [])
+        with wp.ScopedDevice('cpu'), patch.dict('os.environ', {'MOTIONBRICKS_ONNX_PROVIDER': 'cpu'}), \
+             patch.object(onnx_engine.ort, 'InferenceSession', return_value=session):
+            with self.assertRaisesRegex(TensorContractError, 'No contract size for dynamic dimension 1'):
+                onnx_engine.InferenceEngine('unused.onnx')
+
     def test_cpu_thread_limit_and_validation(self):
         wp.init()
         with wp.ScopedDevice('cpu'), patch.dict('os.environ', {

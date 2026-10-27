@@ -92,13 +92,22 @@ class InferenceEngine:
                 try:
                     dtype = np.dtype(_TYPES[node.type])
                     contract = expected.get(node.name)
-                    shape = tuple(
-                        d if isinstance(d, int) else batch_size if i == 0 else contract.shape[i]
-                        for i, d in enumerate(node.shape)
-                    )
+                    shape = []
+                    for i, dimension in enumerate(node.shape):
+                        if isinstance(dimension, int):
+                            shape.append(dimension)
+                        elif i == 0:
+                            shape.append(batch_size)
+                        elif contract is not None and i < len(contract.shape):
+                            shape.append(contract.shape[i])
+                        else:
+                            raise ValueError(f'No contract size for dynamic dimension {i}.')
+                    shape = tuple(shape)
                     spec = TensorSpec(node.name, mode, shape, dtype)
                 except (KeyError, TypeError, ValueError) as exc:
-                    raise TensorContractError(f'Unsupported ONNX tensor {node.name}: {node.shape}, {node.type}') from exc
+                    raise TensorContractError(
+                        f'Unsupported ONNX tensor {node.name}: {node.shape}, {node.type}: {exc}'
+                    ) from exc
                 specs[node.name] = spec
                 self._buffers[node.name] = wp.zeros(shape, dtype=wp.dtype_from_numpy(dtype), device=self.device)
         self._tensor_specs = MappingProxyType(specs)
