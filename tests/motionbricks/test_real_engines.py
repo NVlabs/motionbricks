@@ -19,7 +19,7 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 import warp as wp
 
-from motionbricks.inference.builder import TensorRTBuildOptions
+from motionbricks.inference.options import TensorRTBuildOptions
 from motionbricks.io.bvh import load_bvh
 from motionbricks.io.csv import load_csv
 from motionbricks.io.usd import load_skeleton_from_usd
@@ -58,7 +58,7 @@ class RealEngineTests(unittest.TestCase):
     def setUpClass(cls):
         wp.init()
         cls.previous_device = wp.get_device()
-        wp.set_device("cuda:0")
+        wp.set_device("cuda:0" if wp.is_cuda_available() else "cpu")
 
     @classmethod
     def tearDownClass(cls):

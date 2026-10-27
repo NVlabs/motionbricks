@@ -12,6 +12,8 @@ The steering turns from +X to +Y, so the path bends left. Run it from the reposi
     uv run python docs/examples/locomotion_loop.py --model unitree_g1
 """
 
+from contextlib import nullcontext
+
 import argparse
 import math
 
@@ -73,10 +75,10 @@ def canonical_target(rig, model: str, poses: wp.array) -> None:
 def run(model: str) -> list[np.ndarray]:
     """Move "soma" or "unitree_g1" along the steered path. Return the pose shown at each update."""
     wp.init()
-    wp.set_device("cuda:0")
+    wp.set_device("cuda:0" if wp.is_cuda_available() else "cpu")
     rig = load_rig(model, JOG)
     shown = []
-    with rig.engine as engine, wp.ScopedStream(engine.stream):
+    with rig.engine as engine, (wp.ScopedStream(engine.stream) if engine.stream is not None else nullcontext()):
         if rig.skeleton is not None:
             player = GeneratedMotionPlayer(engine, rig.skeleton)
             place = place_target_poses

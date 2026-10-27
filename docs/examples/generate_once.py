@@ -11,6 +11,8 @@ of the first, which is the loop that makes continuous motion. Run it from the re
     uv run python docs/examples/generate_once.py --model unitree_g1
 """
 
+from contextlib import nullcontext
+
 import argparse
 
 import numpy as np
@@ -28,11 +30,11 @@ TARGET_TIMES = (1.8, 3.4)
 def generate(model: str) -> list[np.ndarray]:
     """Run both generations for "soma" or "unitree_g1". Return the valid poses of each, as arrays."""
     wp.init()
-    wp.set_device("cuda:0")
+    wp.set_device("cuda:0" if wp.is_cuda_available() else "cpu")
     rig = load_rig(model)
     motions = []
-    # The first launch builds a TensorRT plan, which takes a few minutes. Later launches load it.
-    with rig.engine as engine, wp.ScopedStream(engine.stream):
+    # Initial model loading can take several minutes.
+    with rig.engine as engine, (wp.ScopedStream(engine.stream) if engine.stream is not None else nullcontext()):
         skeleton_args = (rig.skeleton,) if rig.skeleton is not None else ()
         context = engine.create_input(*skeleton_args)
         target = engine.create_input(*skeleton_args)

@@ -2,6 +2,26 @@ version = 1
 revision = 3
 requires-python = ">=3.12"
 
+[manifest]
+
+[[manifest.dependency-metadata]]
+name = "tensorrt-cu12"
+version = "10.8.0.43"
+requires-dist = ["tensorrt-cu12-bindings==10.8.0.43", "tensorrt-cu12-libs==10.8.0.43"]
+
+[[manifest.dependency-metadata]]
+name = "tensorrt-cu12-libs"
+version = "10.8.0.43"
+requires-dist = ["nvidia-cuda-runtime-cu12"]
+
+[[package]]
+name = "flatbuffers"
+version = "25.12.19"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e8/2d/d2a548598be01649e2d46231d151a6c56d10b964d94043a335ae56ea2d92/flatbuffers-25.12.19-py2.py3-none-any.whl", hash = "sha256:7634f50c427838bb021c2d66a3d1168e9d199b0607e6329399f04846d42e20b4", size = 26661, upload-time = "2025-12-19T23:16:13.622Z" },
+]
+
 [[package]]
 name = "glfw"
 version = "2.10.2"
@@ -50,12 +70,13 @@ dependencies = [
     { name = "imgui-bundle" },
     { name = "newton" },
     { name = "numpy" },
+    { name = "onnxruntime", marker = "platform_machine == 'arm64' and sys_platform == 'darwin'" },
     { name = "pillow" },
     { name = "pyglet" },
     { name = "scipy" },
-    { name = "tensorrt-cu12" },
-    { name = "tensorrt-cu12-bindings" },
-    { name = "tensorrt-cu12-libs" },
+    { name = "tensorrt-cu12", marker = "sys_platform != 'darwin'" },
+    { name = "tensorrt-cu12-bindings", marker = "sys_platform != 'darwin'" },
+    { name = "tensorrt-cu12-libs", marker = "sys_platform != 'darwin'" },
     { name = "trimesh" },
     { name = "usd-core" },
     { name = "warp-lang" },
@@ -66,12 +87,13 @@ requires-dist = [
     { name = "imgui-bundle", specifier = "==1.92.4" },
     { name = "newton", specifier = "==1.6.0" },
     { name = "numpy", specifier = "==2.4.3" },
+    { name = "onnxruntime", marker = "platform_machine == 'arm64' and sys_platform == 'darwin'", specifier = ">=1.22" },
     { name = "pillow", specifier = ">=13.0.0" },
     { name = "pyglet", specifier = "==2.1.13" },
     { name = "scipy", specifier = "==1.17.1" },
-    { name = "tensorrt-cu12", specifier = "==10.8.0.43" },
-    { name = "tensorrt-cu12-bindings", specifier = "==10.8.0.43" },
-    { name = "tensorrt-cu12-libs", specifier = "==10.8.0.43" },
+    { name = "tensorrt-cu12", marker = "sys_platform != 'darwin'", specifier = "==10.8.0.43" },
+    { name = "tensorrt-cu12-bindings", marker = "sys_platform != 'darwin'", specifier = "==10.8.0.43" },
+    { name = "tensorrt-cu12-libs", marker = "sys_platform != 'darwin'", specifier = "==10.8.0.43" },
     { name = "trimesh", specifier = ">=4.6.8" },
     { name = "usd-core", specifier = "==26.3" },
     { name = "warp-lang", specifier = ">=1.17.0" },
@@ -169,6 +191,31 @@ wheels = [
 ]
 
 [[package]]
+name = "onnxruntime"
+version = "1.31.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "flatbuffers" },
+    { name = "numpy" },
+    { name = "packaging" },
+    { name = "protobuf" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/0e/f7/cecc0efeeea83bff2f7789ae1b80f27fa0f0210d6d9d66d1f0031a6b5e47/onnxruntime-1.31.1-cp312-cp312-macosx_14_0_arm64.whl", hash = "sha256:96dd2564b10ea7153ad9c207e7cd8e5917cb3ba521e0e0a62ac03486fdc8d56c", size = 20882125, upload-time = "2026-10-26T19:26:16.256Z" },
+    { url = "https://files.pythonhosted.org/packages/b2/93/d2b855793302ef57d55cc0583b72a00a8dcb01d9bdb3adac380f09b050e8/onnxruntime-1.31.1-cp313-cp313-macosx_14_0_arm64.whl", hash = "sha256:e4ad067d36e2220218e085d7223283b2ee1bc73d887e811fd14d21cf901a11ee", size = 20881825, upload-time = "2026-10-26T19:26:31.51Z" },
+    { url = "https://files.pythonhosted.org/packages/d7/55/b511099a435972b86b5d04ef374cdca8de920311cc979180029b80145bf5/onnxruntime-1.31.1-cp314-cp314-macosx_14_0_arm64.whl", hash = "sha256:8536ac43682caa7492c46d6cfd4c3c8db288dcf0619508431a22170b670ee1d0", size = 20883427, upload-time = "2026-10-26T19:26:54.067Z" },
+]
+
+[[package]]
+name = "packaging"
+version = "26.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/7d/fa/3944b40b07da9ce895c0e6303a5ab7d53da063554f534556b134a54d6093/packaging-26.3.tar.gz", hash = "sha256:94edc256424af38762eb31306eed28beb9f0efc50a8837492c9d6fd6004aed79", size = 313412, upload-time = "2026-08-04T18:15:28.737Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/63/34/ba1c580383c9eada3711951fef0795c80b829a078d72188184bcab9dd527/packaging-26.3-py3-none-any.whl", hash = "sha256:d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c", size = 129956, upload-time = "2026-08-04T18:15:27.159Z" },
+]
+
+[[package]]
 name = "pillow"
 version = "13.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -242,6 +289,16 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/8e/ed/d504165ef79af6fafe25c76726cf30f544cc236002f7ed054f1d51adc4ff/pillow-13.0.0-pp312-pypy312_pp80-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:93ff9c9c3663ce23aaa5d0b6b6abac55359e2a0c06c7e30f3771829af816be63", size = 5464358, upload-time = "2026-10-16T22:18:02.779Z" },
     { url = "https://files.pythonhosted.org/packages/7b/fe/a10aba5503ca13e9e009b8bd0a1a4ce5584bdce246245fd6f3a83701369c/pillow-13.0.0-pp312-pypy312_pp80-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:e65dd6e75de67b2362a4fa3e16aa627595f65054dc4ec73d64680c84d592fa61", size = 6043514, upload-time = "2026-10-16T22:18:04.538Z" },
     { url = "https://files.pythonhosted.org/packages/c0/37/66b12dc476041fe523bca29c9d58fbf1ea92a4eaf73acfb9e993948f1191/pillow-13.0.0-pp312-pypy312_pp80-win_amd64.whl", hash = "sha256:567f20f1c75897d7663830da6ea8af719e03d712b1d9ee7f813319f9ece42e5a", size = 7366030, upload-time = "2026-10-16T22:18:06.638Z" },
+]
+
+[[package]]
+name = "protobuf"
+version = "7.36.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/d9/89/5b8517baa72f84a67b8a307ba953c91057af618bf40bf676f3c03551f8f0/protobuf-7.36.2.tar.gz", hash = "sha256:497d0463ff3316681da6c0b9e8d06cb465d61abce00b613ab42226175644d1bb", size = 512737, upload-time = "2026-09-17T20:07:59.326Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/32/72/98342feb672507c8f3a69e34b4fa8961f608edba5c1a48a6f47156d92cb5/protobuf-7.36.2-cp310-abi3-macosx_10_9_universal2.whl", hash = "sha256:cbc70b17ee27e28894c7fee8bb04be1abead49e936bc70eb60052531eee2079e", size = 456039, upload-time = "2026-09-17T20:07:51.542Z" },
+    { url = "https://files.pythonhosted.org/packages/e4/04/d52c7016b04b6c5108f26691f9d33ec82a9b65d041f1a9c771137693d618/protobuf-7.36.2-py3-none-any.whl", hash = "sha256:bdb3a345d48db958e6ce1f18e508beb0cc981d64f24088427549c866cd039f1e", size = 179806, upload-time = "2026-09-17T20:07:58.211Z" },
 ]
 
 [[package]]
@@ -327,6 +384,10 @@ wheels = [
 name = "tensorrt-cu12"
 version = "10.8.0.43"
 source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "tensorrt-cu12-bindings" },
+    { name = "tensorrt-cu12-libs" },
+]
 sdist = { url = "https://files.pythonhosted.org/packages/90/db/1d1f49a1ea68022155da5cc9f910f1db1093bf983843bb92247e58565ac9/tensorrt_cu12-10.8.0.43.tar.gz", hash = "sha256:0efb7ba28afde0823e6502028da5acabf0f45d321e77a615fe64a6c1af568071", size = 18351, upload-time = "2025-01-24T01:00:29.303Z" }
 
 [[package]]

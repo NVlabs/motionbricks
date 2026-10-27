@@ -54,7 +54,7 @@ def create_gl_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--verbose",
         action="store_true",
-        help="Show detailed messages, such as each clip load, TensorRT output, and Warp module loads.",
+        help="Show detailed messages, such as each clip load, inference output, and Warp module loads.",
     )
     return parser
 

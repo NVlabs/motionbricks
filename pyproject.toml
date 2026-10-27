@@ -19,9 +19,10 @@ dependencies = [
     "pillow>=13.0.0",
     "usd-core==26.3",
     "scipy==1.17.1",
-    "tensorrt-cu12==10.8.0.43",
-    "tensorrt-cu12-bindings==10.8.0.43",
-    "tensorrt-cu12-libs==10.8.0.43",
+    "tensorrt-cu12==10.8.0.43; sys_platform != 'darwin'",
+    "tensorrt-cu12-bindings==10.8.0.43; sys_platform != 'darwin'",
+    "tensorrt-cu12-libs==10.8.0.43; sys_platform != 'darwin'",
+    "onnxruntime>=1.22; sys_platform == 'darwin' and platform_machine == 'arm64'",
 ]
 
 [tool.setuptools.packages.find]
@@ -37,3 +38,13 @@ version = { attr = "motionbricks.__version__" }
 
 [tool.uv]
 managed = true
+
+[[tool.uv.dependency-metadata]]
+name = "tensorrt-cu12"
+version = "10.8.0.43"
+requires-dist = ["tensorrt-cu12-bindings==10.8.0.43", "tensorrt-cu12-libs==10.8.0.43"]
+
+[[tool.uv.dependency-metadata]]
+name = "tensorrt-cu12-libs"
+version = "10.8.0.43"
+requires-dist = ["nvidia-cuda-runtime-cu12"]

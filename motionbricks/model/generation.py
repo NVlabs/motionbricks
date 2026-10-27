@@ -6,8 +6,9 @@
 from __future__ import annotations
 
 from collections.abc import Generator
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from typing import TYPE_CHECKING
+from time import perf_counter
 
 import warp as wp
 
@@ -129,7 +130,7 @@ def read_token_count(engine: InferenceEngine, config: MotionBricksInferenceConfi
         engine: Engine that ran the generation.
         config: Generation settings with the allowed token counts.
     """
-    with wp.ScopedStream(engine.stream):
+    with wp.ScopedStream(engine.stream) if engine.stream is not None else nullcontext():
         token_count = int(engine.device_tensor("pred_num_tokens").numpy()[0])
     if token_count not in config.allowed_token_counts:
         raise TensorContractError(
@@ -139,26 +140,27 @@ def read_token_count(engine: InferenceEngine, config: MotionBricksInferenceConfi
 
 
 class GenerationTimer:
-    """Time each stage of a generation with CUDA events on the engine's stream.
+    """Time each stage with CUDA events or the CPU monotonic clock.
 
     milliseconds holds the times of the last generation, keyed by the names in
     GENERATION_STAGES. A skipped stage reads 0.
     """
 
     def __init__(self, stream: wp.Stream) -> None:
-        """Create the start and end events of each stage on the stream's device.
+        """Create timing events for a CUDA stream, or use CPU timing when it is None.
 
         Args:
             stream: Stream whose work is timed.
         """
         self._stream = stream
+        self._cpu_times = {}
         self._events = {
             stage: (
                 wp.Event(device=stream.device, enable_timing=True),
                 wp.Event(device=stream.device, enable_timing=True),
             )
             for stage in GENERATION_STAGES
-        }
+        } if stream is not None else {}
         self._timed: set[str] = set()
         self.milliseconds = dict.fromkeys(GENERATION_STAGES, 0.0)
 
@@ -169,6 +171,13 @@ class GenerationTimer:
         Args:
             name: Stage name from GENERATION_STAGES.
         """
+        if self._stream is None:
+            start_time = perf_counter()
+            try:
+                yield
+            finally:
+                self._cpu_times[name] = (perf_counter() - start_time) * 1000
+            return
         start, end = self._events[name]
         self._stream.record_event(start)
         yield
@@ -177,6 +186,10 @@ class GenerationTimer:
 
     def read(self) -> None:
         """Read the stage times into milliseconds. Call it after the stream finishes."""
+        if self._stream is None:
+            self.milliseconds = {name: self._cpu_times.get(name, 0.0) for name in GENERATION_STAGES}
+            self._cpu_times.clear()
+            return
         for name, (start, end) in self._events.items():
             timed = name in self._timed
             self.milliseconds[name] = wp.get_event_elapsed_time(start, end, synchronize=False) if timed else 0.0

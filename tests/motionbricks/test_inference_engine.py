@@ -6,7 +6,10 @@ import unittest
 from types import SimpleNamespace
 
 import numpy as np
-import tensorrt as trt
+try:
+    import tensorrt as trt
+except ImportError:
+    raise unittest.SkipTest("TensorRT is not installed on this platform")
 
 from motionbricks.inference.types import TensorMode, TensorSpec
 from motionbricks.inference.builder import TensorRTBuildOptions, _specialize_batch_dimension, create_logger

@@ -32,14 +32,14 @@ uv run python docs/examples/locomotion_loop.py --model unitree_g1
 - [generate_once.py](examples/generate_once.py) generates from clip poses, then chains a second generation from the last four poses it played. It shows the [generation flow](#generation-flow) in its simplest form.
 - [locomotion_loop.py](examples/locomotion_loop.py) runs the [continuous locomotion loop](#a-continuous-locomotion-loop) with a motion player. It steers a jog around a left turn, scales the target poses to the desired speed, and places them ahead of the character.
 
-[_rig.py](examples/_rig.py) holds the setup that both scripts share. It uses only the `motionbricks` package, so you can copy it. The first launch of each model builds a TensorRT plan, which takes a few minutes.
+[_rig.py](examples/_rig.py) holds the setup that both scripts share. It uses only the `motionbricks` package, so you can copy it. On NVIDIA systems the first launch builds a TensorRT plan. On Apple Silicon, ONNX Runtime initializes its CPU provider, or the experimental Core ML provider when explicitly selected.
 
 ### Packages
 
 | Package | Contents |
 | --- | --- |
 | [motionbricks/model](../motionbricks/model) | Model contracts, engines, context tokens, target tokens, and generation settings |
-| [motionbricks/inference](../motionbricks/inference) | Build, cache, and run TensorRT plans |
+| [motionbricks/inference](../motionbricks/inference) | Run models through TensorRT or ONNX Runtime |
 | [motionbricks/animation](../motionbricks/animation), [motionbricks/robotics](../motionbricks/robotics) | `AnimationBuffer`, `DOFAnimationBuffer`, skeletons, and meshes |
 | [motionbricks/io](../motionbricks/io) | BVH, CSV, and USD loading |
 | [motionbricks/runtime](../motionbricks/runtime) | Motion players and recorders, target pose helpers, blend spaces, runtime Smart Primitives, and pivots |
@@ -50,7 +50,7 @@ Each class or function uses its `device` argument, the device of an object it re
 
 ## Engines
 
-Each engine builds or loads a cached TensorRT plan from a bundled ONNX model, and keeps its buffers and CUDA graph between generations. Engines need a CUDA device and order their work on `engine.stream`. Use an engine as a context manager, or call `close()` when you are done.
+On NVIDIA systems, each engine builds or loads a cached TensorRT plan and orders its work on `engine.stream`. On Apple Silicon, engines use ONNX Runtime and CPU Warp buffers; `engine.stream` is `None` and inference is synchronous. The experimental Core ML provider can delegate unsupported operators to the CPU. Use an engine as a context manager, or call `close()` when you are done.
 
 ```python
 from motionbricks.model.soma.contract import SOMA_N1_FP32_ONNX_PATH
@@ -102,11 +102,11 @@ An engine aligns the context and target for inference, then restores the world p
 
 Both engines derive from `MotionBricksEngine` in [motionbricks/model/engine.py](../motionbricks/model/engine.py). It holds the constructor and the generation flow. Each rig engine supplies only the steps that depend on its pose layout: checking the buffers, encoding the context and target, decoding the prediction, and endpoint correction.
 
-The apps create their engines with `create_engine()` in [app/utils/model_loading.py](../app/utils/model_loading.py). It selects the bundled FP32 or mixed FP16 model and reports TensorRT build progress in the viewer. The apps keep one engine at a time. Switching to the other rig closes the current engine before the new one loads, and the TensorRT plan cache keeps the reload short.
+The apps create their engines with `create_engine()` in [app/utils/model_loading.py](../app/utils/model_loading.py). It selects the bundled FP32 or mixed FP16 model and reports loading progress in the viewer. The apps keep one engine at a time. Switching to the other rig closes the current engine before the new one loads, and the TensorRT plan cache keeps NVIDIA reloads short.
 
 ### TensorRT builds
 
-The first launch of each model, precision, and batch size builds a TensorRT plan and caches it in `.trt-cache/`. `TensorRTBuildOptions` controls the build:
+On NVIDIA systems, the first launch of each model, precision, and batch size builds a TensorRT plan and caches it in `.trt-cache/`. `TensorRTBuildOptions` controls the build. On macOS, only `batch_size` applies:
 
 | Option | Default | Meaning |
 | --- | --- | --- |

@@ -1,26 +1,35 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Check TensorRT and load model engines while the viewer shows the build progress."""
+"""Load model engines while the viewer shows progress."""
 
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
 import logging
 from pathlib import Path
+import sys
 import time
 from typing import Any, TypeVar
 
 import newton
-import tensorrt as trt
 import warp as wp
 
-from motionbricks.inference.builder import TensorRTBuildOptions, create_logger
 from motionbricks.inference.engine import InferenceEngine
-from motionbricks.inference.progress import (
-    TensorRTBuildProgress,
-    TensorRTBuildProgressMonitor,
-)
+from motionbricks.inference.options import TensorRTBuildOptions
+
+if sys.platform != "darwin":
+    import tensorrt as trt
+    from motionbricks.inference.builder import create_logger
+    from motionbricks.inference.progress import TensorRTBuildProgress, TensorRTBuildProgressMonitor
+else:
+    class TensorRTBuildProgressMonitor:
+        def snapshot(self):
+            return None
+
+        def request_cancel(self):
+            pass
+
 from motionbricks.model.contract import ModelRig
 from motionbricks.model.soma.contract import SOMA_N1_FP16_ONNX_PATH, SOMA_N1_FP32_ONNX_PATH
 from motionbricks.model.soma.engine import MotionBricksSOMAEngine
@@ -46,6 +55,8 @@ _BUILD_PROGRESS_UPDATE_INTERVAL = 0.1
 
 
 def _format_engine_loading_text(progress: TensorRTBuildProgress) -> str:
+    if progress is None:
+        return "Loading ONNX model..."
     if progress.phase_name is None:
         return "Checking TensorRT plan cache..."
 
@@ -61,10 +72,12 @@ def _format_engine_loading_text(progress: TensorRTBuildProgress) -> str:
     )
 
 
-def require_tensorrt() -> None:
-    """Exit with a console error unless TensorRT can start on the current device."""
+def require_inference_backend() -> None:
+    """Check that the current device can run its inference backend."""
 
     device = wp.get_device()
+    if sys.platform == "darwin" and device.is_cpu:
+        return
     if device.is_cuda:
         try:
             trt.Runtime(create_logger("ERROR"))
@@ -82,7 +95,7 @@ def create_engine(
 ) -> MotionBricksSOMAEngine | MotionBricksUnitreeG1Engine:
     """Create a rig's engine from its bundled ONNX model."""
     logger.info(
-        "Loading MotionBricks %s in %s. The first run builds and caches a TensorRT plan.",
+        "Loading MotionBricks %s in %s.",
         RIG_LABELS[rig], "mixed FP16" if fp16 else "FP32",
     )
     engine_type, fp32_path, fp16_path = _ENGINES[rig]

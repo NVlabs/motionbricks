@@ -7,12 +7,13 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from pathlib import Path
+import sys
 from typing import TYPE_CHECKING, Any
 
 import warp as wp
 
-from motionbricks.inference.builder import TensorRTBuildOptions
 from motionbricks.inference.engine import InferenceEngine
+from motionbricks.inference.options import TensorRTBuildOptions
 
 from .config import MotionBricksInferenceConfig
 from .contract import valid_frame_count
@@ -48,14 +49,14 @@ class MotionBricksEngine(InferenceEngine, ABC):
         logger_severity: str = "INFO",
         build_progress_monitor: Any | None = None,
     ) -> None:
-        """Load or build the TensorRT plan, then check it against the model's contract.
+        """Load the model using the platform backend, then check its tensor contract.
 
         Args:
             onnx_path: ONNX model to run.
             model_to_runtime: Transform from model space to world space. The default is
                 the identity.
-            build_options: Build options for the plan. None uses the defaults.
-            stream: Stream for inference. None creates a new stream.
+            build_options: TensorRT plan options. On macOS only batch_size is used.
+            stream: CUDA stream for inference. On macOS this must be None.
             cache_dir: Directory that holds the cached plans. A relative path starts
                 at the working directory.
             force_rebuild: Build a new plan even when a cached one matches.
@@ -66,6 +67,7 @@ class MotionBricksEngine(InferenceEngine, ABC):
             build_progress_monitor: TensorRT progress monitor for the build. None
                 reports no progress.
         """
+        backend_options = {"expected_tensor_specs": self.contract.tensor_specs} if sys.platform == "darwin" else {}
         super().__init__(
             onnx_path,
             build_options=build_options,
@@ -74,6 +76,7 @@ class MotionBricksEngine(InferenceEngine, ABC):
             force_rebuild=force_rebuild,
             logger_severity=logger_severity,
             build_progress_monitor=build_progress_monitor,
+            **backend_options,
         )
         try:
             self.contract.validate_tensor_specs(self.tensor_specs)
@@ -81,7 +84,7 @@ class MotionBricksEngine(InferenceEngine, ABC):
             self.close()
             raise
 
-        self._use_cuda_graph = bake_cuda_graph
+        self._use_cuda_graph = bake_cuda_graph and self.device.is_cuda
         self._model_to_runtime = wp.transform(model_to_runtime)
         self._runtime_to_model = wp.transform_inverse(self._model_to_runtime)
         self.timer = GenerationTimer(self.stream)

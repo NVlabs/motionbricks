@@ -9,7 +9,7 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 import warp as wp
 
-from motionbricks.inference.builder import TensorRTBuildOptions
+from motionbricks.inference.options import TensorRTBuildOptions
 from motionbricks.inference.errors import TensorContractError
 from motionbricks.model.config import MotionBricksInferenceConfig
 from motionbricks.model.kernels import write_motionbricks_conditions_kernel

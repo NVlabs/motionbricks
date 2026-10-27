@@ -5,6 +5,8 @@
 
 from __future__ import annotations
 
+from contextlib import nullcontext
+
 from dataclasses import dataclass
 from functools import partial
 import math
@@ -56,7 +58,7 @@ from .runtime.common.io.scene_document import (
 )
 from .utils.cli import add_model_precision_argument, configure_logging, create_gl_parser
 from .utils.file_dialog import choose_file
-from .utils.model_loading import create_engine, require_tensorrt
+from .utils.model_loading import create_engine, require_inference_backend
 from .utils.input import InputManager, LocomotionModeInput, camera_relative_movement
 from .runtime.soma.character import SOMACharacter
 from .runtime.unitree_g1.character import UnitreeG1Character
@@ -395,7 +397,7 @@ class ScenePreview:
         asset_pool: SmartPrimitiveAssetPool,
     ) -> None:
         self._use_rig(assets)
-        with wp.ScopedStream(self._engine.stream):
+        with wp.ScopedStream(self._engine.stream) if self._engine.stream is not None else nullcontext():
             session = self._create_scene_session(path, scene, asset_pool)
             self._activate_scene_session(session)
 
@@ -1071,14 +1073,14 @@ class ScenePreview:
                 # Loading can build another engine and switch streams, so it
                 # runs between frames, outside the active engine's stream.
                 self._load_pending_scene()
-                with wp.ScopedStream(self._scene_session.character.engine.stream):
+                with wp.ScopedStream(self._scene_session.character.engine.stream) if self._scene_session.character.engine.stream is not None else nullcontext():
                     self.step()
                     self.render()
                 frame += 1
         finally:
             session = self._scene_session
             if session.state_machine.is_interacting:
-                with wp.ScopedStream(session.character.engine.stream):
+                with wp.ScopedStream(session.character.engine.stream) if session.character.engine.stream is not None else nullcontext():
                     session.state_machine.interaction_state.exit(
                         session.character, session.state_machine,
                     )
@@ -1100,7 +1102,7 @@ def main() -> None:
     )
     viewer, args = newton.examples.init(parser)
     configure_logging(args)
-    require_tensorrt()
+    require_inference_backend()
     ScenePreview(viewer, args.scene, fp16=args.model_precision == "fp16").run(
         args.num_frames if args.test else None
     )

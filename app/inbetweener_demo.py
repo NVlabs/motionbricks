@@ -27,6 +27,8 @@ other ways.
 
 from __future__ import annotations
 
+from contextlib import nullcontext
+
 from dataclasses import dataclass, field
 from pathlib import Path
 import time
@@ -73,7 +75,7 @@ from .runtime.common.rig import (
     load_rig_assets,
 )
 from .utils.cli import add_model_precision_argument, configure_logging, create_gl_parser
-from .utils.model_loading import create_engine, require_tensorrt
+from .utils.model_loading import create_engine, require_inference_backend
 from .utils.tooltips import show_delayed_tooltip
 
 
@@ -186,7 +188,7 @@ class InbetweenerDemo:
             self.engine.close()
             self.engine = None
         self.rig, self.engine = rig, create_engine(self.viewer, rig, self.fp16)
-        with wp.ScopedStream(self.engine.stream):
+        with wp.ScopedStream(self.engine.stream) if self.engine.stream is not None else nullcontext():
             self._prepare_rig(rig)
         camera = self.viewer.camera
         camera.pos = Vec3(-7.0, -4.0, 3.5)
@@ -676,7 +678,7 @@ class InbetweenerDemo:
             while self.viewer.is_running() and (max_frames is None or frame < max_frames):
                 # A switch can build an engine, so it runs before choosing this frame's stream.
                 self._switch_pending_rig()
-                with wp.ScopedStream(self.engine.stream):
+                with wp.ScopedStream(self.engine.stream) if self.engine.stream is not None else nullcontext():
                     self._choose_pending_clip()
                     now = time.perf_counter()
                     delta_time = min(max(now - self._last_frame_time, 0.0), _MAX_FRAME_SECONDS)
@@ -710,7 +712,7 @@ def main() -> None:
     viewer, args = newton.examples.init(parser)
     configure_logging(args)
     try:
-        require_tensorrt()
+        require_inference_backend()
         demo = InbetweenerDemo(viewer, args.model, fp16=args.model_precision == "fp16")
         demo.run(args.num_frames if args.test else None)
     finally:

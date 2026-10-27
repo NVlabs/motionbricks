@@ -13,7 +13,7 @@ MotionBricks is a modular latent generative model that animates characters and r
 This repository provides pretrained MotionBricks models, based on the [SIGGRAPH 2026 paper](https://arxiv.org/abs/2604.24833), and everything you need to put them to work:
 
 - **Pretrained models** for the [SOMA body model](https://github.com/NVlabs/SOMA-X) and the Unitree G1 robot. They ship as ONNX files, with the pretrained [checkpoints](#checkpoints) on Hugging Face.
-- **A Python runtime**, built on [Warp](https://github.com/NVIDIA/warp), [Newton](https://github.com/newton-physics/newton), and [TensorRT](https://github.com/NVIDIA/TensorRT), that chains generations into continuous motion.
+- **A Python runtime**, built on [Warp](https://github.com/NVIDIA/warp), [Newton](https://github.com/newton-physics/newton), and [TensorRT](https://github.com/NVIDIA/TensorRT) or ONNX Runtime with Core ML, that chains generations into continuous motion.
 - **Two demos**: an [Inbetweener](#inbetweener) that generates motion between poses you place, and a [Scene Preview](#scene-preview) where a character walks, runs, vaults, ducks, and sits its way through a scene.
 - **Two editors** to author your own [Smart Primitives](#editors) and [scenes](#editors).
 
@@ -25,7 +25,7 @@ The demos show one way to drive the model. Your application decides where the ta
 
 ## Setup
 
-The runtime uses TensorRT, which requires an NVIDIA GPU. The demos were tested on Windows and Linux (x86-64) with an NVIDIA GeForce RTX 4090.
+On Windows and Linux, inference uses TensorRT and requires an NVIDIA GPU. On Apple Silicon macOS, inference uses ONNX Runtime on the CPU. An experimental Core ML provider is available. Warp runs animation kernels on the CPU on macOS, and the demos use the Newton OpenGL viewer.
 
 Install [Git LFS](https://git-lfs.com/) and [uv](https://docs.astral.sh/uv/getting-started/installation/). Then clone this repository and run these commands from its root:
 
@@ -34,7 +34,9 @@ git lfs pull
 uv sync
 ```
 
-The first launch of each model and precision builds a TensorRT plan. This takes a few minutes. Plans are cached in `.trt-cache/`, so later launches start quickly. Each app section below gives its command.
+On NVIDIA systems, the first launch of each model and precision builds a TensorRT plan and caches it in `.trt-cache/`. On Apple Silicon, the experimental Core ML model load may take several minutes. Core ML runs supported portions on the CPU or GPU, and ONNX Runtime executes unsupported operations on the CPU. GPU use and real-time performance depend on the model and system.
+
+Set `MOTIONBRICKS_ONNX_PROVIDER=coreml` to try Core ML. This path is experimental: Core ML or its Metal backend may fail on the bundled model. Core ML uses `CPUAndGPU` by default. Set `MOTIONBRICKS_COREML_COMPUTE_UNITS` to `ALL`, `CPUOnly`, or `CPUAndNeuralEngine` to choose other Core ML compute units. The app renderer uses OpenGL, not Metal, and Warp does not currently offer a Metal backend. Each app section below gives its command.
 
 ## How MotionBricks works
 
