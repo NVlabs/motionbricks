@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Check TensorRT and load model engines while the viewer shows the build progress."""
+"""Check inference backends and load model engines while the viewer shows progress."""
 
 from __future__ import annotations
 
@@ -12,7 +12,10 @@ import time
 from typing import Any, TypeVar
 
 import newton
-import tensorrt as trt
+try:
+    import tensorrt as trt
+except ImportError:
+    trt = None
 import warp as wp
 
 from motionbricks.inference.builder import TensorRTBuildOptions, create_logger
@@ -47,7 +50,7 @@ _BUILD_PROGRESS_UPDATE_INTERVAL = 0.1
 
 def _format_engine_loading_text(progress: TensorRTBuildProgress) -> str:
     if progress.phase_name is None:
-        return "Checking TensorRT plan cache..."
+        return "Loading model..."
 
     filled = int(progress.fraction * _BUILD_PROGRESS_BAR_WIDTH)
     progress_bar = "#" * filled + "-" * (_BUILD_PROGRESS_BAR_WIDTH - filled)
@@ -62,17 +65,24 @@ def _format_engine_loading_text(progress: TensorRTBuildProgress) -> str:
 
 
 def require_tensorrt() -> None:
-    """Exit with a console error unless TensorRT can start on the current device."""
+    """Exit with a console error unless a supported backend (TensorRT or ONNX Runtime) is available."""
 
     device = wp.get_device()
-    if device.is_cuda:
+    if device.is_cuda and trt is not None:
         try:
             trt.Runtime(create_logger("ERROR"))
             return
         except Exception:
             pass  # TensorRT has already logged why it cannot start.
+    try:
+        import onnxruntime
+        return
+    except ImportError:
+        pass
     logger.error(
-        "TensorRT cannot run on %s. MotionBricks needs an NVIDIA GPU with a recent driver.", device.alias
+        "No supported inference backend found on %s. MotionBricks requires TensorRT (on NVIDIA GPUs) "
+        "or onnxruntime (on AMD/Intel GPUs or CPU).",
+        device.alias,
     )
     raise SystemExit(1)
 
@@ -82,7 +92,7 @@ def create_engine(
 ) -> MotionBricksSOMAEngine | MotionBricksUnitreeG1Engine:
     """Create a rig's engine from its bundled ONNX model."""
     logger.info(
-        "Loading MotionBricks %s in %s. The first run builds and caches a TensorRT plan.",
+        "Loading MotionBricks %s in %s.",
         RIG_LABELS[rig], "mixed FP16" if fp16 else "FP32",
     )
     engine_type, fp32_path, fp16_path = _ENGINES[rig]

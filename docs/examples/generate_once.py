@@ -28,7 +28,8 @@ TARGET_TIMES = (1.8, 3.4)
 def generate(model: str) -> list[np.ndarray]:
     """Run both generations for "soma" or "unitree_g1". Return the valid poses of each, as arrays."""
     wp.init()
-    wp.set_device("cuda:0")
+    if wp.is_cuda_available():
+        wp.set_device("cuda:0")
     rig = load_rig(model)
     motions = []
     # The first launch builds a TensorRT plan, which takes a few minutes. Later launches load it.
