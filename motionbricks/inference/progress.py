@@ -7,8 +7,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from threading import Lock
+from typing import Any
 
-import tensorrt as trt
+try:
+    import tensorrt as trt
+except ImportError:
+    trt = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -27,11 +31,15 @@ class TensorRTBuildProgress:
         return min(1.0, self.completed_steps / self.total_steps)
 
 
-class TensorRTBuildProgressMonitor(trt.IProgressMonitor):
+_MonitorBase = trt.IProgressMonitor if trt is not None else object
+
+
+class TensorRTBuildProgressMonitor(_MonitorBase):
     """Collect TensorRT optimizer callbacks for polling from another thread."""
 
     def __init__(self) -> None:
-        super().__init__()
+        if trt is not None:
+            super().__init__()
         self._lock = Lock()
         self._phases: dict[str, tuple[int, int]] = {}
         self._active_phase: str | None = None

@@ -13,7 +13,7 @@ MotionBricks is a modular latent generative model that animates characters and r
 This repository provides pretrained MotionBricks models, based on the [SIGGRAPH 2026 paper](https://arxiv.org/abs/2604.24833), and everything you need to put them to work:
 
 - **Pretrained models** for the [SOMA body model](https://github.com/NVlabs/SOMA-X) and the Unitree G1 robot. They ship as ONNX files, with the pretrained [checkpoints](#checkpoints) on Hugging Face.
-- **A Python runtime**, built on [Warp](https://github.com/NVIDIA/warp), [Newton](https://github.com/newton-physics/newton), and [TensorRT](https://github.com/NVIDIA/TensorRT), that chains generations into continuous motion.
+- **A Python runtime**, built on [Warp](https://github.com/NVIDIA/warp), [Newton](https://github.com/newton-physics/newton), [TensorRT](https://github.com/NVIDIA/TensorRT), and [ONNX Runtime](https://onnxruntime.ai), that chains generations into continuous motion.
 - **Two demos**: an [Inbetweener](#inbetweener) that generates motion between poses you place, and a [Scene Preview](#scene-preview) where a character walks, runs, vaults, ducks, and sits its way through a scene.
 - **Two editors** to author your own [Smart Primitives](#editors) and [scenes](#editors).
 
@@ -25,16 +25,63 @@ The demos show one way to drive the model. Your application decides where the ta
 
 ## Setup
 
-The runtime uses TensorRT, which requires an NVIDIA GPU. The demos were tested on Windows and Linux (x86-64) with an NVIDIA GeForce RTX 4090.
+MotionBricks supports **AMD, Intel, and NVIDIA GPUs** as well as CPU inference on Windows and Linux:
+- **AMD & Intel GPUs (Windows)**: Uses ONNX Runtime with DirectML and CPU execution out of the box. No CUDA or TensorRT required.
+- **NVIDIA GPUs**: Uses TensorRT for hardware-accelerated CUDA execution (or ONNX Runtime).
 
-Install [Git LFS](https://git-lfs.com/) and [uv](https://docs.astral.sh/uv/getting-started/installation/). Then clone this repository and run these commands from its root:
+### Prerequisites
+
+1. Install [Git LFS](https://git-lfs.com/) and [uv](https://docs.astral.sh/uv/getting-started/installation/).
+2. On Windows, ensure you have the [Visual Studio C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) installed (needed by NVIDIA Warp to compile CPU kernels).
+
+### Installation
+
+Clone this repository and run these commands from its root:
 
 ```sh
 git lfs pull
 uv sync
 ```
 
-The first launch of each model and precision builds a TensorRT plan. This takes a few minutes. Plans are cached in `.trt-cache/`, so later launches start quickly. Each app section below gives its command.
+> **NVIDIA Users**: To install optional TensorRT packages for CUDA acceleration, run:
+> ```sh
+> uv sync --extra tensorrt
+> ```
+> On NVIDIA GPUs with TensorRT, the first launch of each model and precision builds a TensorRT plan cached in `.trt-cache/` (takes a few minutes).
+
+### Running on Windows with an AMD GPU
+
+When running on Windows with an AMD GPU (e.g. Radeon RX 7000 / 9000 series such as the RX 9070 XT), the runtime automatically detects that no CUDA device is present and uses **ONNX Runtime** for model inference, while Warp executes kinematics on CPU and the Newton/Pyglet OpenGL viewer renders hardware-accelerated directly on your AMD GPU:
+
+1. **Test Headless Examples**:
+   ```sh
+   # SOMA human model
+   uv run python docs/examples/generate_once.py
+
+   # Unitree G1 robot model
+   uv run python docs/examples/generate_once.py --model unitree_g1
+
+   # Continuous steered locomotion loop
+   uv run python docs/examples/locomotion_loop.py
+   ```
+
+2. **Run Interactive Demos**:
+   ```sh
+   # Inbetweener demo
+   uv run python -m app.inbetweener_demo
+
+   # Scene Preview
+   uv run python -m app.scene_preview --scene assets/scenes/soma_gym.scene.json
+   uv run python -m app.scene_preview --scene assets/scenes/g1_gym.scene.json
+   ```
+
+3. **Run Editors**:
+   ```sh
+   uv run python -m app.smart_primitive_editor
+   uv run python -m app.scene_editor
+   ```
+
+On AMD GPUs, the model loads immediately without needing to compile a multi-minute TensorRT plan cache.
 
 ## How MotionBricks works
 

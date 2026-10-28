@@ -9,7 +9,10 @@ import logging
 from pathlib import Path
 from typing import Any
 
-import tensorrt as trt
+try:
+    import tensorrt as trt
+except ImportError:
+    trt = None
 
 from .cache import (
     TensorRTEngineCache,
@@ -101,6 +104,8 @@ def load_or_build_serialized_engine(
             progress.
     """
 
+    require_supported_tensorrt()
+
     model_path = Path(onnx_path).expanduser().resolve()
     if not model_path.is_file():
         raise FileNotFoundError(f"Could not find ONNX file: {model_path}.")
@@ -166,6 +171,8 @@ def build_serialized_engine(
             progress.
     """
 
+    require_supported_tensorrt()
+
     try:
         builder = trt.Builder(logger)
 
@@ -213,48 +220,58 @@ def build_serialized_engine(
         raise EngineBuildError(f"TensorRT failed while building {onnx_path}: {exc}") from exc
 
 
-_TENSORRT_SEVERITIES = {
-    "INTERNAL_ERROR": trt.Logger.INTERNAL_ERROR,
-    "ERROR": trt.Logger.ERROR,
-    "WARNING": trt.Logger.WARNING,
-    "INFO": trt.Logger.INFO,
-    "VERBOSE": trt.Logger.VERBOSE,
-}
-# TensorRT's info and verbose messages are details, so they log at debug level.
-_TENSORRT_LOG_LEVELS = {
-    trt.Logger.INTERNAL_ERROR: logging.CRITICAL,
-    trt.Logger.ERROR: logging.ERROR,
-    trt.Logger.WARNING: logging.WARNING,
-    trt.Logger.INFO: logging.DEBUG,
-    trt.Logger.VERBOSE: logging.DEBUG,
-}
+if trt is not None:
+    _TENSORRT_SEVERITIES = {
+        "INTERNAL_ERROR": trt.Logger.INTERNAL_ERROR,
+        "ERROR": trt.Logger.ERROR,
+        "WARNING": trt.Logger.WARNING,
+        "INFO": trt.Logger.INFO,
+        "VERBOSE": trt.Logger.VERBOSE,
+    }
+    _TENSORRT_LOG_LEVELS = {
+        trt.Logger.INTERNAL_ERROR: logging.CRITICAL,
+        trt.Logger.ERROR: logging.ERROR,
+        trt.Logger.WARNING: logging.WARNING,
+        trt.Logger.INFO: logging.DEBUG,
+        trt.Logger.VERBOSE: logging.DEBUG,
+    }
+    _LoggerBase = trt.ILogger
+else:
+    _TENSORRT_SEVERITIES = {}
+    _TENSORRT_LOG_LEVELS = {}
+    _LoggerBase = object
+
 _TENSORRT_LOG = logging.getLogger("motionbricks.inference.tensorrt")
 
 
-class _TensorRTLogger(trt.ILogger):
+class _TensorRTLogger(_LoggerBase):
     """Forward TensorRT messages down to a minimum severity to Python logging."""
 
-    def __init__(self, min_severity: trt.ILogger.Severity) -> None:
-        trt.ILogger.__init__(self)
+    def __init__(self, min_severity: Any) -> None:
+        if trt is not None:
+            trt.ILogger.__init__(self)
         self._levels = {
             severity: level
             for severity, level in _TENSORRT_LOG_LEVELS.items()
             if int(severity) <= int(min_severity)
         }
 
-    def log(self, severity: trt.ILogger.Severity, msg: str) -> None:
+    def log(self, severity: Any, msg: str) -> None:
         level = self._levels.get(severity)
         if level is not None:
             _TENSORRT_LOG.log(level, msg)
 
 
-def create_logger(severity: str) -> trt.ILogger:
+def create_logger(severity: str) -> Any:
     """Create a TensorRT logger that forwards messages to Python logging.
 
     Args:
         severity: Least severe TensorRT message to forward: INTERNAL_ERROR, ERROR,
             WARNING, INFO, or VERBOSE. Case does not matter.
     """
+
+    if trt is None:
+        return None
 
     min_severity = _TENSORRT_SEVERITIES.get(severity.upper())
     if min_severity is None:
@@ -269,6 +286,9 @@ def require_supported_tensorrt() -> None:
 
     InferenceEngine uses its named tensor API.
     """
+
+    if trt is None:
+        raise RuntimeError("TensorRT is not installed. MotionBricks requires TensorRT 10 or newer.")
 
     version = str(trt.__version__)
     try:

@@ -40,6 +40,7 @@ class MotionBricksEngine(InferenceEngine, ABC):
         onnx_path: str | Path,
         *,
         model_to_runtime: wp.transform = wp.transform_identity(),
+        backend: str = "auto",
         build_options: TensorRTBuildOptions | None = None,
         stream: wp.Stream | None = None,
         cache_dir: str | Path = ".trt-cache",
@@ -48,26 +49,27 @@ class MotionBricksEngine(InferenceEngine, ABC):
         logger_severity: str = "INFO",
         build_progress_monitor: Any | None = None,
     ) -> None:
-        """Load or build the TensorRT plan, then check it against the model's contract.
+        """Load or build the inference plan, then check it against the model's contract.
 
         Args:
             onnx_path: ONNX model to run.
             model_to_runtime: Transform from model space to world space. The default is
                 the identity.
+            backend: Inference backend: "auto", "tensorrt", "directml", or "cpu".
             build_options: Build options for the plan. None uses the defaults.
             stream: Stream for inference. None creates a new stream.
-            cache_dir: Directory that holds the cached plans. A relative path starts
-                at the working directory.
+            cache_dir: Directory that holds the cached plans (TensorRT only). A relative
+                path starts at the working directory.
             force_rebuild: Build a new plan even when a cached one matches.
             bake_cuda_graph: Capture inference into a CUDA graph on the first
-                generation.
+                generation (TensorRT only).
             logger_severity: Least severe TensorRT message to forward:
                 INTERNAL_ERROR, ERROR, WARNING, INFO, or VERBOSE.
-            build_progress_monitor: TensorRT progress monitor for the build. None
-                reports no progress.
+            build_progress_monitor: Progress monitor for the build. None reports no progress.
         """
         super().__init__(
             onnx_path,
+            backend=backend,
             build_options=build_options,
             stream=stream,
             cache_dir=cache_dir,
